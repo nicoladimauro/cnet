@@ -30,7 +30,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "dataset.h"
 #include "globals.h"
-#include "rarray"
+#include <rarray>
 
 void minumum_spanning_tree(rarray<double, 2> &, int n, int *);
 
