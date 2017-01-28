@@ -1,0 +1,18 @@
+version "1.0"
+package "cnet"
+purpose "CNets implementation in C++.
+
+By Nicola Di Mauro"
+
+# Options
+option "problem" - "Input problem name" string required
+option "min-inst" - "Minimum number of instances for a slice" multiple(1-) optional int default="500"
+option "min-feat" - "Minimum number of features for a slice" multiple(1-) optional int default="4"
+option "alpha" - "Pseudocounts for the smoothing" optional multiple(1-) double default="1"
+option "output-dir" - "Output dir path" optional string default="exp"
+option "model" - "The model to use" string optional default="cnet" values="cnet","xcnet","optioncnet","optionxcnet"
+option "option-length" - "The number of or nodes in the option nodes" int optional multiple(1-) default="3"
+option "ensemble" - "Whether to build an ensemble model" flag off
+option "k" - "The number of ensemble components" int optional default="5" dependon="ensemble"
+option "seed" - "Seed for the random generator" optional int default="117"
+option "verbose" - "Verbosity flag" flag off
