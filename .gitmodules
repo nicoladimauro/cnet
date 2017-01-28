@@ -1,0 +1,3 @@
+[submodule "rarray"]
+	path = rarray
+	url = https://github.com/vanzonr/rarray
