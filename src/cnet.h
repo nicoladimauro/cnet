@@ -68,7 +68,7 @@ protected:
     std::vector<double>&,std::vector<double>&, double);
 };
 
-class optionXCnet : public xcnet {
+class optionxcnet : public xcnet {
 public:
     void fit(dataset &X, paramsexp &);
 protected:

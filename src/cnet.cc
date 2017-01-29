@@ -623,7 +623,7 @@ void optioncnet::fit(dataset& X, paramsexp & input_parameters)
 }
  
 
-void optionXCnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int option_node_length,
+void optionxcnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int option_node_length,
     std::vector<std::shared_ptr<tree_node> > & left_nodes, std::vector<std::shared_ptr<tree_node> > & right_nodes,
     std::vector<double> &best_left_ll, std::vector<double> &best_right_ll , double alpha){
     
@@ -784,7 +784,7 @@ void optionXCnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int
 }
 
  
-void optionXCnet::fit(dataset& X, paramsexp & input_parameters)
+void optionxcnet::fit(dataset& X, paramsexp & input_parameters)
 {
     
     int option_depth = input_parameters.option_length.size();
