@@ -31,11 +31,14 @@ if (NOT EXISTS "src/cmdline.c" AND NOT EXISTS "src/cmdline.h")
   add_target(ggotarget ALL DEPENDS ${GGO_FILES})
 endif (NOT EXISTS "src/cmdline.c" AND NOT EXISTS "src/cmdline.h")
 
-set(TRAINCLTREE_SOURCES src/cltree.cc src/cltree.h src/dataset.cc src/dataset.h src/learncltree.cc src/utils.h)
-set(TRAINCNET_SOURCES src/cltree.cc src/cltree.h src/dataset.cc src/dataset.h src/utils.h src/cmdline.cc
-src/cmdline.h src/cnet.cc src/cnet.h src/globals.h src/learncsn.cc src/nodes.cc
-src/nodes.h src/params.cc src/params.h)
+set(LEARNCLTREE_SOURCES src/cltree.cc src/cltree.h src/dataset.cc src/dataset.h src/learncltree.cc src/utils.h)
+set(LEARNCNET_SOURCES src/cltree.cc src/cltree.h src/dataset.cc src/dataset.h src/utils.h src/cmdline.cc
+src/cmdline.h src/cnet.cc src/cnet.h src/globals.h src/learncnet.cc src/nodes.cc src/nodes.h src/params.cc src/params.h)
+set(LEARNENSCNET_SOURCES src/cltree.cc src/cltree.h src/dataset.cc src/dataset.h src/utils.h src/cmdline.cc
+src/cmdline.h src/cnet.cc src/cnet.h src/globals.h src/learnenscnet.cc src/nodes.cc src/nodes.h src/params.cc src/params.h)
 
-add_executable(learncltree ${TRAINCLTREE_SOURCES})
-add_executable(learncnet ${TRAINCNET_SOURCES})
+
+add_executable(learncltree ${LEARNCLTREE_SOURCES})
+add_executable(learncnet ${LEARNCNET_SOURCES})
+add_executable(learnenscnet ${LEARNENSCNET_SOURCES})
 
