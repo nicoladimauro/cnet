@@ -194,28 +194,21 @@ int main(int argc, char **argv)
                 std::vector<double> test_ll_accum;
                     
                 for (int iter=0; iter<max_iterations; iter++){
-
-										ensCnet<cnet> ens_cnet(input_parameters.max_components);
-										ensCnet<xcnet> ens_xcnet(input_parameters.max_components);
-										ensCnet<optioncnet> ens_optioncnet(input_parameters.max_components);
-										ensCnet<optionxcnet> ens_optionxcnet(input_parameters.max_components);
+									std::shared_ptr<ensemble> C;
 
                     std::cout << "\n    iter:" << iter << " ";
                     auto t1 = std::chrono::high_resolution_clock::now();
                     
-                   
-                    if (input_parameters.model == "cnet"){
-                        ens_cnet.fit(train_data, pars);
-                    }
-                    if (input_parameters.model == "xcnet"){
-                        ens_xcnet.fit(train_data, pars);
-                    }
-                    if (input_parameters.model == "optioncnet"){
-                        ens_optioncnet.fit(train_data, pars);
-                    }
-                    if (input_parameters.model == "optionxcnet"){
-                        ens_optionxcnet.fit(train_data, pars);
-                    }
+                    if (input_parameters.model == "cnet")
+												C = std::make_shared<enscnet<cnet> >(input_parameters.max_components);
+                    if (input_parameters.model == "xcnet")
+												C = std::make_shared<enscnet<xcnet> >(input_parameters.max_components);
+                    if (input_parameters.model == "optioncnet")
+												C = std::make_shared<enscnet<optioncnet> >(input_parameters.max_components);
+                    if (input_parameters.model == "optionxcnet")
+												C = std::make_shared<enscnet<optionxcnet> >(input_parameters.max_components);
+
+										C->fit(train_data, pars);
 
                     auto t2 = std::chrono::high_resolution_clock::now();
                     
@@ -223,26 +216,10 @@ int main(int argc, char **argv)
 										std::vector<double> valid_lls;
 										std::vector<double> test_lls;
 
-                    if (input_parameters.model == "cnet"){
-                        train_lls = ens_cnet.eval(train_data);
-                        valid_lls = ens_cnet.eval(valid_data);
-                        test_lls = ens_cnet.eval(test_data);
-                    }
-                    if (input_parameters.model == "xcnet"){
-                        train_lls = ens_xcnet.eval(train_data);
-                        valid_lls = ens_xcnet.eval(valid_data);
-                        test_lls = ens_xcnet.eval(test_data);
-                    }
-                    if (input_parameters.model == "optioncnet"){
-                        train_lls = ens_optioncnet.eval(train_data);
-                        valid_lls = ens_optioncnet.eval(valid_data);
-                        test_lls = ens_optioncnet.eval(test_data);
-                    }
-                    if (input_parameters.model == "optionxcnet"){
-                        train_lls = ens_optionxcnet.eval(train_data);
-                        valid_lls = ens_optionxcnet.eval(valid_data);
-                        test_lls = ens_optionxcnet.eval(test_data);
-                    }
+										train_lls = C->eval(train_data);
+										valid_lls = C->eval(valid_data);
+										test_lls = C->eval(test_data);
+
                         
                         double train_ll = mean(train_lls);
                         double valid_ll = mean(valid_lls);

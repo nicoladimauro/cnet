@@ -40,16 +40,16 @@ class cnet{
  public:
 	cnet();
 	virtual void fit(dataset &X, paramsexp &);
-	std::vector<double> eval(dataset &X);
-    int _n_or_nodes = 0;
-    int _n_tree_nodes = 0;
-    int _n_option_nodes = 0;
-    int _max_depth = 0;
-    double _mean_depth = 0.0;
-    void compute_stats();
+	virtual std::vector<double> eval(dataset &X);
+	int _n_or_nodes = 0;
+	int _n_tree_nodes = 0;
+	int _n_option_nodes = 0;
+	int _max_depth = 0;
+	double _mean_depth = 0.0;
+	void compute_stats();
  protected:
 	std::shared_ptr<node> _root;
-    bool make_or_node(dataset& , std::shared_ptr<tree_node>, double, double&, double&, std::shared_ptr<tree_node>&, std::shared_ptr<tree_node>&, double);
+	bool make_or_node(dataset& , std::shared_ptr<tree_node>, double, double&, double&, std::shared_ptr<tree_node>&, std::shared_ptr<tree_node>&, double);
 };
 
 class xcnet : public cnet {
