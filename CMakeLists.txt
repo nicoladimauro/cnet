@@ -28,7 +28,7 @@ if (NOT EXISTS "src/cmdline.c" AND NOT EXISTS "src/cmdline.h")
 		COMMENT		"Generating getopt parser code (cmdline.*) ..."
 		VERBATIM
 	)
-  add_target(ggotarget ALL DEPENDS ${GGO_FILES})
+  add_custom_target(ggotarget ALL DEPENDS ${GGO_FILES})
 endif (NOT EXISTS "src/cmdline.c" AND NOT EXISTS "src/cmdline.h")
 
 set(LEARNCLTREE_SOURCES src/cltree.cc src/cltree.h src/dataset.cc src/dataset.h src/learncltree.cc src/utils.h)
