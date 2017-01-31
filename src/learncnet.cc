@@ -165,6 +165,7 @@ int main(int argc, char **argv)
                 if (input_parameters.model == "xcnet" || input_parameters.model == "optionxcnet")
                     max_iterations = 10;
 
+								max_iterations = 1;
 
                 std::vector<double> time_accum;
                 std::vector<int> or_nodes_accum;

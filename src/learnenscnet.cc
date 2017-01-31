@@ -230,17 +230,15 @@ int main(int argc, char **argv)
                     
                         std::cout << " [Net stats -- or:" << C->_n_or_nodes << ", tr:" << C->_n_tree_nodes << ", op:" <<
                             C->_n_option_nodes << ", maxd:" << C->_max_depth << ", meand:" << C->_mean_depth << "]";
-                    
-                        std::cout << ", time:"
+												*/
+                        std::cout << "--> time:"
                             << (double) std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000 << " s";
                         
                         std::cout << ", trainLL:" << train_ll <<
                             ", validLL:" << valid_ll <<
                             ", testLL:" << test_ll;
 
-												*/
-
-                        time_accum.push_back((double) std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000);
+												time_accum.push_back((double) std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000);
 												/*
                         or_nodes_accum.push_back(C->_n_or_nodes);
                         tree_nodes_accum.push_back(C->_n_tree_nodes);

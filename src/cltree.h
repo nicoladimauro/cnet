@@ -36,16 +36,16 @@ void minumum_spanning_tree(rarray<double, 2> &, int n, int *);
 
 
 class cltree{
-    rarray<double, 2> _log_probs;
-    rarray<double, 4> _log_j_probs;
-    rarray<double, 3> _log_factors;
+	rarray<double, 2> _log_probs;
+	rarray<double, 4> _log_j_probs;
+	rarray<double, 3> _log_factors;
 	int _n_vars;
 	int * _tree;
-    bool _fitted;
+	bool _fitted;
 	void compute_log_probs(dataset &, double);
 	void compute_log_probs(dataset &X, std::vector<int> &, std::vector<int>&, int, double);
 public:
-    cltree();
+	cltree();
 	std::vector<double> eval(dataset &);
 	std::vector<double> eval(dataset &, std::vector<int> &, std::vector<int>&);
 	void fit(dataset &, double);
