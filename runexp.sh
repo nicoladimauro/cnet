@@ -1,6 +1,14 @@
 MIN_INST=200,500,1000,2000
 ALPHA=0.1,0.2,0.5,1.0,2.0
 
+mkdir exp/
+mkdir exp/cnet
+mkdir exp/xcnet
+mkdir exp/optionxcnet
+mkdir exp/ensxcnet
+mkdir exp/optioncnet
+mkdir exp/enscnet
+
 # cnet
 
 ./learncnet --problem=accidents --min-inst=$MIN_INST --min-feat=4 --output-dir=exp/cnet --model=cnet --alpha=$ALPHA > exp/cnet/accidents.log
