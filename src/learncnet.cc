@@ -119,7 +119,7 @@ int main(int argc, char **argv)
     }
     
     std::ofstream output;
-		output.open(output_dir_name + "exp.log");
+		output.open(output_dir_name + "exp.log", std::ofstream::out);
    
     std::cout << "Loaded " << train_data.shape[0] << " instances on " << train_data.shape[1] << " variables, sparsity: " << train_data.sparsity << std::endl;
 
@@ -164,8 +164,6 @@ int main(int argc, char **argv)
                 
                 if (input_parameters.model == "xcnet" || input_parameters.model == "optionxcnet")
                     max_iterations = 10;
-
-								max_iterations = 1;
 
                 std::vector<double> time_accum;
                 std::vector<int> or_nodes_accum;
