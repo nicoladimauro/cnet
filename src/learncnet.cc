@@ -257,7 +257,6 @@ int main(int argc, char **argv)
                     output << std::endl;
                 }
             }
-            output.close();
         }
- 
+		output.close(); 
 }

@@ -32,9 +32,11 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "globals.h"
 
 class ensemble{
+ private:
+	virtual void eval(dataset &) = 0;
  public:
 	virtual void fit(dataset &, paramsexp &) = 0;
-	virtual std::vector<double> eval(dataset &) = 0;
+	virtual std::vector<double> eval(dataset &, unsigned int) = 0;
 };
 
 template<class M>
@@ -42,11 +44,13 @@ class enscnet : public ensemble{
 private:
     std::vector<std::shared_ptr<M> > _models;
     std::vector<double> _weights;
+    std::vector<std::vector<double> > _models_ll;
     int _n_models;
+    void eval(dataset &);
 public:
     enscnet(int);
     void fit(dataset &, paramsexp &);
-    std::vector<double> eval(dataset &);
+    std::vector<double> eval(dataset &, unsigned int);
 };
 
 template<class M>
@@ -54,7 +58,6 @@ enscnet<M>::enscnet(int n_models){
     _n_models = n_models;
     for (int i=0; i<n_models; i++){
         _models.push_back(std::make_shared<M>(M()));
-        _weights.push_back((double) 1 / n_models);
     }
 }
 
@@ -106,35 +109,41 @@ void enscnet<optioncnet>::fit(dataset& X, paramsexp &input_parameters){
 }
 
 template<class M>
-std::vector<double> enscnet<M>::eval(dataset& X){
+void enscnet<M>::eval(dataset& X){
     std::vector<double> lls;
     lls.resize(X.shape[0], 0.0);
 
-    std::vector<std::vector<double> > modelsLL;
-    for (int i=0; i<_n_models; i++)
-        modelsLL.push_back(_models[i]->eval(X));
+		if (_models_ll.size()==0)
+			for (int i=0; i<_n_models; i++)
+        _models_ll.push_back(_models[i]->eval(X));
+}
 
-    std::vector<double> logWeights;
-    for (int i=0; i<_n_models; i++)
-        logWeights.push_back(log(_weights[i]));
+template<class M>
+std::vector<double> enscnet<M>::eval(dataset& X, unsigned int n_components){
 
-    for (int i=0; i<X.shape[0]; i++){
+	SOFT_ASSERT(n_components <= _n_models, "error: required ncomponents greater than nmodels!");
+
+	std::vector<double> lls;
+	lls.resize(X.shape[0], 0.0);
+
+	if (_models_ll.size()==0)
+		eval(X);
+
+	double log_weight = log(1.0 / n_components);
+
+	for (int i=0; i<X.shape[0]; i++){
     
-        // log-sum-exp trick
-        modelsLL[0][i] += logWeights[0];
-        double maxLogVal = modelsLL[0][i];
-        for (int k=1; k<_n_models; k++){
-            modelsLL[k][i] += logWeights[k];
-            if ( modelsLL[k][i] > maxLogVal)
-                maxLogVal = modelsLL[k][i];
-        }
-        double lse = 0.0;
-        for (int k=0; k<_n_models; k++)
-            lse += exp(modelsLL[k][i] - maxLogVal);
-        lls[i] = maxLogVal + log(lse);
-    }
-    return lls;
-
+		// log-sum-exp trick
+		double maxLogVal = _models_ll[0][i] + log_weight;
+		for (int k=1; k< n_components; k++)
+			if ( (_models_ll[k][i] + log_weight) > maxLogVal)
+				maxLogVal = _models_ll[k][i] + log_weight;
+		double lse = 0.0;
+		for (int k=0; k<n_components; k++)
+			lse += exp(_models_ll[k][i] + log_weight - maxLogVal);
+		lls[i] = maxLogVal + log(lse);
+	}
+	return lls;
 }
 
 
