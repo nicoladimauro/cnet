@@ -31,12 +31,12 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "params.h"
 #include "globals.h"
 
+
 class ensemble{
- private:
-	virtual void eval(dataset &) = 0;
  public:
 	virtual void fit(dataset &, paramsexp &) = 0;
-	virtual std::vector<double> eval(dataset &, unsigned int) = 0;
+	virtual std::vector<std::vector<double> > eval(dataset &) = 0;
+	virtual bool is_pdf(int) = 0;
 };
 
 template<class M>
@@ -44,13 +44,12 @@ class enscnet : public ensemble{
 private:
     std::vector<std::shared_ptr<M> > _models;
     std::vector<double> _weights;
-    std::vector<std::vector<double> > _models_ll;
     int _n_models;
-    void eval(dataset &);
 public:
+		bool is_pdf(int);
     enscnet(int);
     void fit(dataset &, paramsexp &);
-    std::vector<double> eval(dataset &, unsigned int);
+    std::vector<std::vector<double> > eval(dataset &);
 };
 
 template<class M>
@@ -109,41 +108,58 @@ void enscnet<optioncnet>::fit(dataset& X, paramsexp &input_parameters){
 }
 
 template<class M>
-void enscnet<M>::eval(dataset& X){
+std::vector<std::vector<double> > enscnet<M>::eval(dataset& X){
     std::vector<double> lls;
-    lls.resize(X.shape[0], 0.0);
+    std::vector<std::vector<double> > models_ll;
 
-		if (_models_ll.size()==0)
-			for (int i=0; i<_n_models; i++)
-        _models_ll.push_back(_models[i]->eval(X));
+    lls.resize(X.shape[0], 0.0);
+		for (int i=0; i<_n_models; i++)
+        models_ll.push_back(_models[i]->eval(X));
+
+		return models_ll;
 }
 
 template<class M>
-std::vector<double> enscnet<M>::eval(dataset& X, unsigned int n_components){
+bool enscnet<M>::is_pdf(int nc){
+	int l=16;
+	std::vector<std::vector<int> > result = { {} };
+	std::vector<std::vector<int> > pools;
 
-	SOFT_ASSERT(n_components <= _n_models, "error: required ncomponents greater than nmodels!");
-
-	std::vector<double> lls;
-	lls.resize(X.shape[0], 0.0);
-
-	if (_models_ll.size()==0)
-		eval(X);
-
-	double log_weight = log(1.0 / n_components);
-
-	for (int i=0; i<X.shape[0]; i++){
-    
-		// log-sum-exp trick
-		double maxLogVal = _models_ll[0][i] + log_weight;
-		for (int k=1; k< n_components; k++)
-			if ( (_models_ll[k][i] + log_weight) > maxLogVal)
-				maxLogVal = _models_ll[k][i] + log_weight;
-		double lse = 0.0;
-		for (int k=0; k<n_components; k++)
-			lse += exp(_models_ll[k][i] + log_weight - maxLogVal);
-		lls[i] = maxLogVal + log(lse);
+	for (int i=0; i<l; ++i){
+		std::vector<int> v = {0, 1};
+		pools.push_back(v);
 	}
-	return lls;
+
+	for (auto &pool : pools){
+		std::vector<std::vector<int> > new_result;
+		for (auto &partial : result){
+			for (auto &v : pool){
+				std::vector<int> new_partial(partial);
+				new_partial.push_back(v);
+				new_result.push_back(new_partial);
+			}
+		}
+		result = new_result;
+	}
+
+	SOFT_ASSERT(result.size() == pow(2,l), "error: possible worlds!");
+
+	dataset X;
+	X.shape[0] = pow(2,l);
+	X.shape[1] = l;
+	X.data = result;
+	
+	std::vector<std::vector<double> > lls_ = eval(X);
+	std::vector<double> uniform_weights(nc, log((double)1/nc));
+	std::vector<double> lls = log_sum_exp(lls_, uniform_weights, nc);
+
+	double sum = 0.0;
+	for (auto &v : lls)
+		sum += exp(v);
+
+	std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size() << " " << std::setprecision(10) << sum;
+
+	return (sum == 1.0);
 }
 
 

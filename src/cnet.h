@@ -28,6 +28,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <memory>
 #include <map>
 #include <random>
+#include <algorithm>
+#include <iomanip>      // std::setprecision
 
 #include "dataset.h"
 #include "cltree.h"
@@ -47,6 +49,7 @@ class cnet{
 	int _max_depth = 0;
 	double _mean_depth = 0.0;
 	void compute_stats();
+	bool is_pdf();
  protected:
 	std::shared_ptr<node> _root;
 	bool make_or_node(dataset& , std::shared_ptr<tree_node>, double, double&, double&, std::shared_ptr<tree_node>&, std::shared_ptr<tree_node>&, double);

@@ -46,12 +46,8 @@ public:
 	double sparsity;
 
 	dataset(const std::string);
-    dataset(){
-        
-    }
-	~dataset(){
-        
-    }
+	dataset(){}
+	~dataset(){}
 };
 
 

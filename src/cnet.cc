@@ -29,7 +29,44 @@ cnet::cnet()
 
 std::vector<double> cnet::eval(dataset& X)
 {
-    return _root->eval(X);
+	return _root->eval(X);
+}
+
+bool cnet::is_pdf(){
+	int l=16;
+	std::vector<std::vector<int> > result = { {} };
+	std::vector<std::vector<int> > pools;
+
+	for (int i=0; i<l; ++i){
+		std::vector<int> v = {0, 1};
+		pools.push_back(v);
+	}
+
+	for (auto &pool : pools){
+		std::vector<std::vector<int> > new_result;
+		for (auto &partial : result){
+			for (auto &v : pool){
+				std::vector<int> new_partial(partial);
+				new_partial.push_back(v);
+				new_result.push_back(new_partial);
+			}
+		}
+		result = new_result;
+	}
+	dataset X;
+	X.shape[0] = pow(2,l);
+	X.shape[1] = l;
+	X.data = result;
+	
+	std::vector<double> lls = eval(X);
+
+	double sum = 0.0;
+	for (auto &v : lls)
+		sum += exp(v);
+
+	std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size() << " " << std::setprecision(10) << sum;
+
+	return (sum == 1.0);
 }
 
 void cnet::compute_stats(){
@@ -137,6 +174,7 @@ bool cnet::make_or_node(dataset& X, std::shared_ptr<tree_node> n, double node_ll
             (best_left_data_row_index.size() + best_right_data_row_index.size());
         right_w = (double)best_right_data_row_index.size() /
             (best_left_data_row_index.size() + best_right_data_row_index.size());
+
 
         left_tree_node = std::make_shared<tree_node>(best_left_clt);
         right_tree_node = std::make_shared<tree_node>(best_right_clt);

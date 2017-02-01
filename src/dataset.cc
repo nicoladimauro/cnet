@@ -50,21 +50,21 @@ dataset::dataset(const std::string file_name){
 	std::string line;
 
     
-    std::cout << "Loading data: ";
+	std::cout << "Loading data: ";
     
-    int rows = 0, cols = 0;
+	int rows = 0, cols = 0;
     
 	data_file.open(file_name);
 
-    SOFT_ASSERT(data_file, " error: " + file_name + " not found!");
+	SOFT_ASSERT(data_file, " error: " + file_name + " not found!");
 
-    while (getline(data_file, line)){
-        if (line.length())
-            rows++;
-        if (rows == 1)
-            cols = splits(line,',');
-    }
-    data_file.close();
+	while (getline(data_file, line)){
+		if (line.length())
+			rows++;
+		if (rows == 1)
+			cols = splits(line,',');
+	}
+	data_file.close();
 	
 
     std::cout << rows << " and " << cols << " cols" << std::endl;

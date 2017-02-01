@@ -124,11 +124,11 @@ std::vector<double> or_node::eval(dataset & X, std::vector<int> &row_idx){
     double logLW = log(_left_weight);
     for (int i=0; i<rowsIdV_size; i++)
         if (X.data[row_idx[i]][_or_feature]){
-            lls[i] += logRW + right_ll[rc];
+            lls[i] = logRW + right_ll[rc];
             rc++;
         }
         else {
-            lls[i] += logLW + left_ll[lc];
+            lls[i] = logLW + left_ll[lc];
             lc++;
         }
        

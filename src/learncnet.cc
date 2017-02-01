@@ -209,6 +209,8 @@ int main(int argc, char **argv)
                         double valid_ll = mean(valid_lls);
                         double test_ll = mean(test_lls);
 
+												C->is_pdf();
+
                         C->compute_stats();
                     
                         std::cout << " [Net stats -- or:" << C->_n_or_nodes << ", tr:" << C->_n_tree_nodes << ", op:" <<
