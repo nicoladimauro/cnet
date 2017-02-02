@@ -388,126 +388,126 @@ xcnet::make_or_node (dataset & X,
   for (int i = 0; i < n->_scope.size (); i++)
     if (n->_scope[i])
       candidate_splits.push_back (i);
+  shuffle (candidate_splits.begin(), candidate_splits.end(), random_generator);
 
-
-  std::uniform_int_distribution < int >distribution (0,
-                                                     candidate_splits.
-                                                     size () - 1);
-  int splitFeature = candidate_splits[distribution (random_generator)];
-
-
-  std::shared_ptr < cltree > left_clt (new cltree);
-  std::shared_ptr < cltree > right_clt (new cltree);
-
-  int rows_left = 0;
-  int rows_right = 0;
-  std::vector < int >left_data_row_index, right_data_row_index;
-
-  int n_row_idx_size = n->_row_idx.size ();
-  for (int j = 0; j < n_row_idx_size; j++)
-    if (X.data[n->_row_idx[j]][splitFeature])
-      {
-        rows_right++;
-        right_data_row_index.push_back (n->_row_idx[j]);
-      }
-    else
-      {
-        rows_left++;
-        left_data_row_index.push_back (n->_row_idx[j]);
-      }
-
-  if (rows_left > 0 && rows_right > 0)
+  while (candidate_splits.size())
     {
-
-      if (verbose)
-        {
-          std::
-            cout << "Splitting on " << splitFeature << " [#l: " << rows_left
-                 << ", #r: " << rows_right << "]" << std::endl;
-          std::cout.flush ();
-        }
-
-      std::vector < int >children_scope = n->_scope;
-      children_scope[splitFeature] = 0;
-
-      double left_w, right_w;
-      left_w = (double) rows_left / (rows_left + rows_right);
-      right_w = (double) rows_right / (rows_left + rows_right);
+      int splitFeature = candidate_splits.back();
+      candidate_splits.pop_back();
 
       std::shared_ptr < cltree > left_clt (new cltree);
       std::shared_ptr < cltree > right_clt (new cltree);
 
-      std::shared_ptr < tree_node > left_tree_node (new tree_node (left_clt));
-      std::shared_ptr < tree_node >
-        right_tree_node (new tree_node (right_clt));
-      left_tree_node->_scope = children_scope;
-      right_tree_node->_scope = children_scope;
-      left_tree_node->_scope_length = n->_scope_length - 1;
-      right_tree_node->_scope_length = n->_scope_length - 1;
-      left_tree_node->_row_idx = left_data_row_index;
-      right_tree_node->_row_idx = right_data_row_index;
+      int rows_left = 0;
+      int rows_right = 0;
+      std::vector < int >left_data_row_index, right_data_row_index;
 
-      left_tree_node->_depth = n->_depth + 1;
-      right_tree_node->_depth = n->_depth + 1;
+      int n_row_idx_size = n->_row_idx.size ();
+      for (int j = 0; j < n_row_idx_size; j++)
+        if (X.data[n->_row_idx[j]][splitFeature])
+          {
+            rows_right++;
+            right_data_row_index.push_back (n->_row_idx[j]);
+          }
+        else
+          {
+            rows_left++;
+            left_data_row_index.push_back (n->_row_idx[j]);
+          }
 
-      left_node = left_tree_node;
-      right_node = right_tree_node;
-
-      if (n == _root)
+      if (rows_left > 0 && rows_right > 0)
         {
-          _root =
-            std::make_shared < or_node >
-            (or_node
-             (left_tree_node, right_tree_node, left_w, right_w,
-              splitFeature));
-          left_tree_node->_parent = _root;
-          right_tree_node->_parent = _root;
-        }
-      else
-        {
-          if (std::static_pointer_cast < or_node >
-              (n->_parent.lock ())->get_left_child () == n)
+
+          if (verbose)
             {
-              std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->set_left_child (std::make_shared <
-                                                      or_node >
-                                                      (or_node
-                                                       (left_tree_node,
-                                                        right_tree_node,
-                                                        left_w, right_w,
-                                                        splitFeature)));
-              left_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_left_child ();
-              right_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_left_child ();
-              std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
+              std::
+                cout << "Splitting on " << splitFeature << " [#l: " << rows_left
+                     << ", #r: " << rows_right << "]" << std::endl;
+              std::cout.flush ();
+            }
+
+          std::vector < int >children_scope = n->_scope;
+          children_scope[splitFeature] = 0;
+
+          double left_w, right_w;
+          left_w = (double) rows_left / (rows_left + rows_right);
+          right_w = (double) rows_right / (rows_left + rows_right);
+
+          std::shared_ptr < cltree > left_clt (new cltree);
+          std::shared_ptr < cltree > right_clt (new cltree);
+
+          std::shared_ptr < tree_node > left_tree_node (new tree_node (left_clt));
+          std::shared_ptr < tree_node >
+            right_tree_node (new tree_node (right_clt));
+          left_tree_node->_scope = children_scope;
+          right_tree_node->_scope = children_scope;
+          left_tree_node->_scope_length = n->_scope_length - 1;
+          right_tree_node->_scope_length = n->_scope_length - 1;
+          left_tree_node->_row_idx = left_data_row_index;
+          right_tree_node->_row_idx = right_data_row_index;
+
+          left_tree_node->_depth = n->_depth + 1;
+          right_tree_node->_depth = n->_depth + 1;
+
+          left_node = left_tree_node;
+          right_node = right_tree_node;
+
+          if (n == _root)
+            {
+              _root =
+                std::make_shared < or_node >
+                (or_node
+                 (left_tree_node, right_tree_node, left_w, right_w,
+                  splitFeature));
+              left_tree_node->_parent = _root;
+              right_tree_node->_parent = _root;
             }
           else
             {
-              std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->set_right_child (std::make_shared <
-                                                       or_node >
-                                                       (or_node
-                                                        (left_tree_node,
-                                                         right_tree_node,
-                                                         left_w, right_w,
-                                                         splitFeature)));
+              if (std::static_pointer_cast < or_node >
+                  (n->_parent.lock ())->get_left_child () == n)
+                {
+                  std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->set_left_child (std::make_shared <
+                                                          or_node >
+                                                          (or_node
+                                                           (left_tree_node,
+                                                            right_tree_node,
+                                                            left_w, right_w,
+                                                            splitFeature)));
+                  left_tree_node->_parent =
+                    std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->get_left_child ();
+                  right_tree_node->_parent =
+                    std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->get_left_child ();
+                  std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
+                }
+              else
+                {
+                  std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->set_right_child (std::make_shared <
+                                                           or_node >
+                                                           (or_node
+                                                            (left_tree_node,
+                                                             right_tree_node,
+                                                             left_w, right_w,
+                                                             splitFeature)));
 
-              left_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_right_child ();
-              right_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_right_child ();
-              std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_right_child ()->_parent =
-                n->_parent;
+                  left_tree_node->_parent =
+                    std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->get_right_child ();
+                  right_tree_node->_parent =
+                    std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->get_right_child ();
+                  std::static_pointer_cast < or_node >
+                    (n->_parent.lock ())->get_right_child ()->_parent =
+                    n->_parent;
+                }
             }
+          return true;
         }
-      return true;
     }
   return false;
 }
@@ -931,94 +931,95 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
     if (n->_scope[i])
       candidate_splits.push_back (i);
 
+  shuffle (candidate_splits.begin(), candidate_splits.end(), random_generator);
 
   for (int k = 0; k < option_node_length; k++)
     {
-
-      std::uniform_int_distribution < int >distribution (0,
-                                                         candidate_splits.
-                                                         size () - 1);
-      int rand_position = distribution (random_generator);
-      int i = candidate_splits[rand_position];
-      candidate_splits.erase (candidate_splits.begin () + rand_position);
-
-      if (n->_scope[i])
+      bool found_feature = false;
+      while (candidate_splits.size() && !found_feature)
         {
+          int i = candidate_splits.back();
+          candidate_splits.pop_back();
 
-          std::shared_ptr < cltree > left_clt (new cltree);
-          std::shared_ptr < cltree > right_clt (new cltree);
-
-          int rows_left = 0;
-          int rows_right = 0;
-          std::vector < int >left_data_row_index, right_data_row_index;
-
-          for (int j = 0; j < n->_row_idx.size (); j++)
-            if (X.data[n->_row_idx[j]][i])
-              {
-                rows_right++;
-                right_data_row_index.push_back (n->_row_idx[j]);
-              }
-            else
-              {
-                rows_left++;
-                left_data_row_index.push_back (n->_row_idx[j]);
-              }
-
-          if (rows_left > 0 && rows_right > 0)
+          if (n->_scope[i])
             {
 
-              std::vector < int >scope = n->_scope;
-              scope[i] = 0;
+              std::shared_ptr < cltree > left_clt (new cltree);
+              std::shared_ptr < cltree > right_clt (new cltree);
 
-              left_clt->fit (X, rows_left, left_data_row_index, scope,
-                             n->_scope_length - 1, alpha);
-              right_clt->fit (X, rows_right, right_data_row_index, scope,
-                              n->_scope_length - 1, alpha);
+              int rows_left = 0;
+              int rows_right = 0;
+              std::vector < int >left_data_row_index, right_data_row_index;
 
-              double left_ll =
-                mean (left_clt->eval (X, left_data_row_index, scope));
-              double right_ll =
-                mean (right_clt->eval (X, right_data_row_index, scope));
-              double split_ll =
-                ((left_ll +
-                  log ((double) rows_left / (rows_left + rows_right))) *
-                 rows_left + (right_ll +
-                              log ((double) rows_right /
-                                   (rows_left +
-                                    rows_right))) * rows_right) / (rows_left +
-                                                                   rows_right);
+              for (int j = 0; j < n->_row_idx.size (); j++)
+                if (X.data[n->_row_idx[j]][i])
+                  {
+                    rows_right++;
+                    right_data_row_index.push_back (n->_row_idx[j]);
+                  }
+                else
+                  {
+                    rows_left++;
+                    left_data_row_index.push_back (n->_row_idx[j]);
+                  }
 
-              if (best_left_clt.size () < option_node_length)
+              if (rows_left > 0 && rows_right > 0)
                 {
-                  best_left_clt.push_back (left_clt);
-                  best_right_clt.push_back (right_clt);
-                  best_left_ll.push_back (left_ll);
-                  best_right_ll.push_back (right_ll);
-                  best_ll.push_back (split_ll);
-                  best_left_data_row_index.push_back (left_data_row_index);
-                  best_right_data_row_index.push_back (right_data_row_index);
-                  split_feature.push_back (i);
-                  scope_split.push_back (scope);
-                }
-              else
-                {
-                  int minPos = 0;
-                  double minValue = best_ll[0];
-                  for (int k = 1; k < option_node_length; k++)
-                    if (best_ll[k] < minValue)
-                      {
-                        minPos = k;
-                        minValue = best_ll[k];
-                      }
-                  best_left_clt[minPos] = left_clt;
-                  best_right_clt[minPos] = right_clt;
-                  best_left_ll[minPos] = left_ll;
-                  best_right_ll[minPos] = right_ll;
-                  best_ll[minPos] = split_ll;
-                  best_left_data_row_index[minPos] = left_data_row_index;
-                  best_right_data_row_index[minPos] = right_data_row_index;
-                  split_feature[minPos] = i;
-                  scope_split[minPos] = scope;
+
+                  found_feature = true;
+                  std::vector < int >scope = n->_scope;
+                  scope[i] = 0;
+
+                  left_clt->fit (X, rows_left, left_data_row_index, scope,
+                                 n->_scope_length - 1, alpha);
+                  right_clt->fit (X, rows_right, right_data_row_index, scope,
+                                  n->_scope_length - 1, alpha);
+
+                  double left_ll =
+                    mean (left_clt->eval (X, left_data_row_index, scope));
+                  double right_ll =
+                    mean (right_clt->eval (X, right_data_row_index, scope));
+                  double split_ll =
+                    ((left_ll +
+                      log ((double) rows_left / (rows_left + rows_right))) *
+                     rows_left + (right_ll +
+                                  log ((double) rows_right /
+                                       (rows_left +
+                                        rows_right))) * rows_right) / (rows_left +
+                                                                       rows_right);
+
+                  if (best_left_clt.size() < option_node_length)
+                    {
+                      best_left_clt.push_back (left_clt);
+                      best_right_clt.push_back (right_clt);
+                      best_left_ll.push_back (left_ll);
+                      best_right_ll.push_back (right_ll);
+                      best_ll.push_back (split_ll);
+                      best_left_data_row_index.push_back (left_data_row_index);
+                      best_right_data_row_index.push_back (right_data_row_index);
+                      split_feature.push_back (i);
+                      scope_split.push_back (scope);
+                    }
+                  else
+                    {
+                      int minPos = 0;
+                      double minValue = best_ll[0];
+                      for (int k = 1; k < option_node_length; k++)
+                        if (best_ll[k] < minValue)
+                          {
+                            minPos = k;
+                            minValue = best_ll[k];
+                          }
+                      best_left_clt[minPos] = left_clt;
+                      best_right_clt[minPos] = right_clt;
+                      best_left_ll[minPos] = left_ll;
+                      best_right_ll[minPos] = right_ll;
+                      best_ll[minPos] = split_ll;
+                      best_left_data_row_index[minPos] = left_data_row_index;
+                      best_right_data_row_index[minPos] = right_data_row_index;
+                      split_feature[minPos] = i;
+                      scope_split[minPos] = scope;
+                    }
                 }
             }
         }
