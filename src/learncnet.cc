@@ -209,7 +209,7 @@ int main(int argc, char **argv)
                         double valid_ll = mean(valid_lls);
                         double test_ll = mean(test_lls);
 
-												C->is_pdf();
+												//C->is_pdf();
 
                         C->compute_stats();
                     

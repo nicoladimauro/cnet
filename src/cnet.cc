@@ -432,7 +432,7 @@ void xcnet::fit(dataset& X, paramsexp & input_parameters)
 }
 
 
-void optioncnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int option_node_length,
+bool optioncnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int option_node_length,
     std::vector<std::shared_ptr<tree_node> > & left_nodes, std::vector<std::shared_ptr<tree_node> > & right_nodes,
     std::vector<double> &best_left_ll, std::vector<double> &best_right_ll, double alpha){
     
@@ -524,6 +524,9 @@ void optioncnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int 
         std::cout.flush();
     }
     
+		if (split_feature.size() <= 1)
+			return false;
+
     std::vector<std::shared_ptr<or_node> > or_nodes;
     std::vector<double> weights;
         
@@ -580,6 +583,7 @@ void optioncnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int 
             std::static_pointer_cast<or_node>(n->_parent.lock())->get_right_child()->_parent = n->_parent;
         }
     }
+		return true;
 }
 
 void optioncnet::fit(dataset& X, paramsexp & input_parameters)
@@ -624,21 +628,23 @@ void optioncnet::fit(dataset& X, paramsexp & input_parameters)
                 << ", local ll " << node_training_ll[n->get_id()] << std::endl;
             std::cout.flush();
         }
-
+				bool option_node_created = false;
         if (n->_depth <= option_depth){
             option_node_length = input_parameters.option_length[n->_depth-1];
             std::vector<std::shared_ptr<tree_node> > leftNodes, rightNodes;
             std::vector<double> leftLL, rightLL;
-            make_option_node(X, n, option_node_length, leftNodes, rightNodes, leftLL, rightLL, input_parameters.alpha);
-            for (int k=0; k<leftNodes.size(); k++){
+            option_node_created = make_option_node(X, n, option_node_length, leftNodes, rightNodes, leftLL, rightLL, input_parameters.alpha);
+						if (option_node_created)
+							for (int k=0; k<leftNodes.size(); k++){
                 node_training_ll[leftNodes[k]->get_id()] = leftLL[k];
                 node_training_ll[rightNodes[k]->get_id()] = rightLL[k];
                 if (leftNodes[k]->_scope_length > min_features && leftNodes[k]->_row_idx.size() > min_instances)
                     nodes_to_process.push(leftNodes[k]);   
                 if (rightNodes[k]->_scope_length > min_features && rightNodes[k]->_row_idx.size() > min_instances)
-                    nodes_to_process.push(rightNodes[k]);   
-            }
-        } else {
+									nodes_to_process.push(rightNodes[k]);   
+							}
+        }
+				if (!option_node_created){
 
             double best_left_ll, best_right_ll;
             std::shared_ptr<tree_node> best_left_node, best_right_node;
@@ -661,7 +667,7 @@ void optioncnet::fit(dataset& X, paramsexp & input_parameters)
 }
  
 
-void optionxcnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int option_node_length,
+bool optionxcnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int option_node_length,
     std::vector<std::shared_ptr<tree_node> > & left_nodes, std::vector<std::shared_ptr<tree_node> > & right_nodes,
     std::vector<double> &best_left_ll, std::vector<double> &best_right_ll , double alpha){
     
@@ -763,6 +769,9 @@ void optionxcnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int
         std::cout.flush();
     }
     
+		if (split_feature.size() <= 1)
+			return false;
+
     std::vector<std::shared_ptr<or_node> > or_nodes;
     std::vector<double> weights;
         
@@ -819,6 +828,7 @@ void optionxcnet::make_option_node(dataset& X, std::shared_ptr<tree_node> n, int
             std::static_pointer_cast<or_node>(n->_parent.lock())->get_right_child()->_parent = n->_parent;
         }
     }
+		return true;
 }
 
  
@@ -861,19 +871,21 @@ void optionxcnet::fit(dataset& X, paramsexp & input_parameters)
             std::cout << "Node Id " << n->get_id() << ", # instances " << 
                 n->_row_idx.size() << ", scope length " << n->_scope_length << std::endl;
 
-
+				bool option_node_created = false;
         if (n->_depth <= option_depth){
             option_node_length = input_parameters.option_length[n->_depth-1];
             std::vector<std::shared_ptr<tree_node> > leftNodes, rightNodes;
             std::vector<double> leftLL, rightLL;
-            make_option_node(X, n, option_node_length, leftNodes, rightNodes, leftLL, rightLL, input_parameters.alpha);
-            for (int k=0; k<leftNodes.size(); k++){
+            option_node_created = make_option_node(X, n, option_node_length, leftNodes, rightNodes, leftLL, rightLL, input_parameters.alpha);
+						if (option_node_created)
+							for (int k=0; k<leftNodes.size(); k++){
                 if (leftNodes[k]->_scope_length > min_features && leftNodes[k]->_row_idx.size() > min_instances)
-                    nodes_to_process.push(leftNodes[k]);   
+									nodes_to_process.push(leftNodes[k]);   
                 if (rightNodes[k]->_scope_length > min_features && rightNodes[k]->_row_idx.size() > min_instances)
-                    nodes_to_process.push(rightNodes[k]);   
-            }
-        } else {
+									nodes_to_process.push(rightNodes[k]);   
+							}
+        }
+				if (!option_node_created)	{
             std::shared_ptr<tree_node> left_node, right_node;
             if (make_or_node(X, n, left_node, right_node, input_parameters.alpha)){
             

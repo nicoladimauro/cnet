@@ -67,7 +67,7 @@ class optioncnet : public cnet {
 public:
     void fit(dataset &X, paramsexp &);
 protected:
-    void make_option_node(dataset&, std::shared_ptr<tree_node>, int, std::vector<std::shared_ptr<tree_node> > &, std::vector<std::shared_ptr<tree_node> > &,
+    bool make_option_node(dataset&, std::shared_ptr<tree_node>, int, std::vector<std::shared_ptr<tree_node> > &, std::vector<std::shared_ptr<tree_node> > &,
     std::vector<double>&,std::vector<double>&, double);
 };
 
@@ -75,7 +75,7 @@ class optionxcnet : public xcnet {
 public:
     void fit(dataset &X, paramsexp &);
 protected:
-    void make_option_node(dataset&, std::shared_ptr<tree_node>, int, std::vector<std::shared_ptr<tree_node> > &, std::vector<std::shared_ptr<tree_node> > &,
+    bool make_option_node(dataset&, std::shared_ptr<tree_node>, int, std::vector<std::shared_ptr<tree_node> > &, std::vector<std::shared_ptr<tree_node> > &,
     std::vector<double>&,std::vector<double>&, double);
 };
 
