@@ -29,35 +29,35 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 template < class T > double
 mean (std::vector < T > v)
 {
-	return (double) std::accumulate (v.begin (), v.end (), 0.0) / v.size ();
+  return (double) std::accumulate (v.begin (), v.end (), 0.0) / v.size ();
 }
 
 template < class T > std::vector < double >
 log_sum_exp (std::vector < std::vector < T > >models_ll,
-						 std::vector < double >log_weight, int n)
+             std::vector < double >log_weight, int n)
 {
-	std::vector < double >
-		lls;
+  std::vector < double >
+    lls;
 
-	unsigned int
-		lls_size = models_ll[0].size ();
-	lls.resize (lls_size, 0.0);
+  unsigned int
+    lls_size = models_ll[0].size ();
+  lls.resize (lls_size, 0.0);
 
-	for (int i = 0; i < lls_size; i++)
-		{
-			// log-sum-exp trick
-			double
-				maxLogVal = models_ll[0][i] + log_weight[0];
-			for (int k = 1; k < n; k++)
-				if ((models_ll[k][i] + log_weight[k]) > maxLogVal)
-					maxLogVal = models_ll[k][i] + log_weight[k];
-			double
-				lse = 0.0;
-			for (int k = 0; k < n; k++)
-				lse += exp (models_ll[k][i] + log_weight[k] - maxLogVal);
-			lls[i] = maxLogVal + log (lse);
-		}
-	return lls;
+  for (int i = 0; i < lls_size; i++)
+    {
+      // log-sum-exp trick
+      double
+        maxLogVal = models_ll[0][i] + log_weight[0];
+      for (int k = 1; k < n; k++)
+        if ((models_ll[k][i] + log_weight[k]) > maxLogVal)
+          maxLogVal = models_ll[k][i] + log_weight[k];
+      double
+        lse = 0.0;
+      for (int k = 0; k < n; k++)
+        lse += exp (models_ll[k][i] + log_weight[k] - maxLogVal);
+      lls[i] = maxLogVal + log (lse);
+    }
+  return lls;
 }
 
 
@@ -65,13 +65,13 @@ template < class T > double
 stdev (std::vector < T > v, double mean)
 {
 
-	if (v.size () == 1)
-		return 0;
-	double
-		accum = 0.0;
-	std::for_each (std::begin (v), std::end (v),
-								 [&](const double d) {accum += (d - mean) * (d - mean);});
-	return sqrt (accum / (v.size () - 1));
+  if (v.size () == 1)
+    return 0;
+  double
+    accum = 0.0;
+  std::for_each (std::begin (v), std::end (v),
+                 [&](const double d) {accum += (d - mean) * (d - mean);});
+  return sqrt (accum / (v.size () - 1));
 }
 
 #endif

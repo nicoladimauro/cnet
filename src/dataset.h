@@ -38,18 +38,18 @@ int splits (const std::string &, char);
 class dataset
 {
  public:
-	int shape[2];
-	std::vector < std::vector < int >>lil_data;
-	std::vector < std::vector < int >>data;
-	double sparsity;
+  int shape[2];
+  std::vector < std::vector < int >>lil_data;
+  std::vector < std::vector < int >>data;
+  double sparsity;
 
-	dataset (const std::string);
-	dataset ()
-		{
-		}
-	~dataset ()
-		{
-		}
+  dataset (const std::string);
+  dataset ()
+    {
+    }
+  ~dataset ()
+    {
+    }
 };
 
 #endif

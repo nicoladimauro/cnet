@@ -35,163 +35,163 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class ensemble
 {
  public:
-	virtual void fit (dataset &, paramsexp &) = 0;
-	virtual std::vector < std::vector < double >>eval (dataset &) = 0;
-	virtual bool is_pdf (int) = 0;
+  virtual void fit (dataset &, paramsexp &) = 0;
+  virtual std::vector < std::vector < double >>eval (dataset &) = 0;
+  virtual bool is_pdf (int) = 0;
 };
 
 template < class M > class enscnet:public ensemble
 {
  private:
-	std::vector < std::shared_ptr < M > >_models;
-	std::vector < double >_weights;
-	int _n_models;
+  std::vector < std::shared_ptr < M > >_models;
+  std::vector < double >_weights;
+  int _n_models;
  public:
-	bool is_pdf (int);
-	enscnet (int);
-	void fit (dataset &, paramsexp &);
-	std::vector < std::vector < double >>eval (dataset &);
+  bool is_pdf (int);
+  enscnet (int);
+  void fit (dataset &, paramsexp &);
+  std::vector < std::vector < double >>eval (dataset &);
 };
 
 template < class M > enscnet < M >::enscnet (int n_models)
 {
-	_n_models = n_models;
-	for (int i = 0; i < n_models; i++)
-		{
-			_models.push_back (std::make_shared < M > (M ()));
-		}
+  _n_models = n_models;
+  for (int i = 0; i < n_models; i++)
+    {
+      _models.push_back (std::make_shared < M > (M ()));
+    }
 }
 
 template < class M >
 void enscnet < M >::fit (dataset & X, paramsexp & input_parameters)
 {
-	for (int i = 0; i < _n_models; i++)
-		{
-			_models[i]->fit (X, input_parameters);
-		}
+  for (int i = 0; i < _n_models; i++)
+    {
+      _models[i]->fit (X, input_parameters);
+    }
 }
 
 template <>
 void enscnet < cnet >::fit (dataset & X, paramsexp & input_parameters)
 {
-	for (int i = 0; i < _n_models; i++)
-		{
-			dataset bootstrap;
+  for (int i = 0; i < _n_models; i++)
+    {
+      dataset bootstrap;
 
-			bootstrap.shape[0] = X.shape[0];
-			bootstrap.shape[1] = X.shape[1];
-			bootstrap.sparsity = X.sparsity;
+      bootstrap.shape[0] = X.shape[0];
+      bootstrap.shape[1] = X.shape[1];
+      bootstrap.sparsity = X.sparsity;
 
-			for (int k = 0; k < X.shape[0]; k++)
-				{
-					std::uniform_int_distribution < int >distribution (0,
-																														 X.shape[0] - 1);
-					int selected = distribution (random_generator);
+      for (int k = 0; k < X.shape[0]; k++)
+        {
+          std::uniform_int_distribution < int >distribution (0,
+                                                             X.shape[0] - 1);
+          int selected = distribution (random_generator);
 
-					bootstrap.data.push_back (X.data[selected]);
-					bootstrap.lil_data.push_back (X.lil_data[selected]);
-				}
-			_models[i]->fit (bootstrap, input_parameters);
-		}
+          bootstrap.data.push_back (X.data[selected]);
+          bootstrap.lil_data.push_back (X.lil_data[selected]);
+        }
+      _models[i]->fit (bootstrap, input_parameters);
+    }
 }
 
 template <>
 void enscnet < optioncnet >::fit (dataset & X, paramsexp & input_parameters)
 {
-	for (int i = 0; i < _n_models; i++)
-		{
-			dataset bootstrap;
+  for (int i = 0; i < _n_models; i++)
+    {
+      dataset bootstrap;
 
-			bootstrap.shape[0] = X.shape[0];
-			bootstrap.shape[1] = X.shape[1];
-			bootstrap.sparsity = X.sparsity;
+      bootstrap.shape[0] = X.shape[0];
+      bootstrap.shape[1] = X.shape[1];
+      bootstrap.sparsity = X.sparsity;
 
-			for (int k = 0; k < X.shape[0]; k++)
-				{
-					std::uniform_int_distribution < int >distribution (0,
-																														 X.shape[0] - 1);
-					int selected = distribution (random_generator);
+      for (int k = 0; k < X.shape[0]; k++)
+        {
+          std::uniform_int_distribution < int >distribution (0,
+                                                             X.shape[0] - 1);
+          int selected = distribution (random_generator);
 
-					bootstrap.data.push_back (X.data[selected]);
-					bootstrap.lil_data.push_back (X.lil_data[selected]);
-				}
-			_models[i]->fit (bootstrap, input_parameters);
-		}
+          bootstrap.data.push_back (X.data[selected]);
+          bootstrap.lil_data.push_back (X.lil_data[selected]);
+        }
+      _models[i]->fit (bootstrap, input_parameters);
+    }
 }
 
 template < class M > std::vector < std::vector < double >>
 enscnet <
 M >::eval (dataset & X)
 {
-	std::vector < double >
-		lls;
-	std::vector < std::vector < double >>
-		models_ll;
+  std::vector < double >
+    lls;
+  std::vector < std::vector < double >>
+    models_ll;
 
-	lls.resize (X.shape[0], 0.0);
-	for (int i = 0; i < _n_models; i++)
-		models_ll.push_back (_models[i]->eval (X));
+  lls.resize (X.shape[0], 0.0);
+  for (int i = 0; i < _n_models; i++)
+    models_ll.push_back (_models[i]->eval (X));
 
-	return models_ll;
+  return models_ll;
 }
 
 template < class M > bool enscnet < M >::is_pdf (int nc)
 {
-	int
-		l = 16;
-	std::vector < std::vector < int >>
-		result = { {} };
-	std::vector < std::vector < int >>
-		pools;
+  int
+    l = 16;
+  std::vector < std::vector < int >>
+    result = { {} };
+  std::vector < std::vector < int >>
+    pools;
 
-	for (int i = 0; i < l; ++i)
-		{
-			std::vector < int >
-				v = { 0, 1 };
-			pools.push_back (v);
-		}
+  for (int i = 0; i < l; ++i)
+    {
+      std::vector < int >
+        v = { 0, 1 };
+      pools.push_back (v);
+    }
 
-	for (auto & pool:pools)
-		{
-			std::vector < std::vector < int >>
-				new_result;
-			for (auto & partial:result)
-				{
-					for (auto & v:pool)
-						{
-							std::vector < int >
-								new_partial (partial);
-							new_partial.push_back (v);
-							new_result.push_back (new_partial);
-						}
-				}
-			result = new_result;
-		}
+  for (auto & pool:pools)
+    {
+      std::vector < std::vector < int >>
+        new_result;
+      for (auto & partial:result)
+        {
+          for (auto & v:pool)
+            {
+              std::vector < int >
+                new_partial (partial);
+              new_partial.push_back (v);
+              new_result.push_back (new_partial);
+            }
+        }
+      result = new_result;
+    }
 
-	SOFT_ASSERT (result.size () == pow (2, l), "error: possible worlds!");
+  SOFT_ASSERT (result.size () == pow (2, l), "error: possible worlds!");
 
-	dataset
-		X;
-	X.shape[0] = pow (2, l);
-	X.shape[1] = l;
-	X.data = result;
+  dataset
+    X;
+  X.shape[0] = pow (2, l);
+  X.shape[1] = l;
+  X.data = result;
 
-	std::vector < std::vector < double >>
-		lls_ = eval (X);
-	std::vector < double >
-		uniform_weights (nc, log ((double) 1 / nc));
-	std::vector < double >
-		lls = log_sum_exp (lls_, uniform_weights, nc);
+  std::vector < std::vector < double >>
+    lls_ = eval (X);
+  std::vector < double >
+    uniform_weights (nc, log ((double) 1 / nc));
+  std::vector < double >
+    lls = log_sum_exp (lls_, uniform_weights, nc);
 
-	double
-		sum = 0.0;
-	for (auto & v:lls)
-		sum += exp (v);
+  double
+    sum = 0.0;
+  for (auto & v:lls)
+    sum += exp (v);
 
-	std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size () <<
-		" " << std::setprecision (10) << sum;
+  std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size () <<
+    " " << std::setprecision (10) << sum;
 
-	return (sum == 1.0);
+  return (sum == 1.0);
 }
 
 

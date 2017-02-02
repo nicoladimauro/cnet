@@ -24,23 +24,23 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 std::ostream & operator<< (std::ostream & os, const params & pars)
 {
-	os << "[Parameters --" <<
-		"problem:" << pars.problem_name << " min_instances:";
-	for (int i = 0; i < pars.min_instances.size (); i++)
-		os << pars.min_instances[i] << " ";
-	os << " min_features:";
-	for (int i = 0; i < pars.min_features.size (); i++)
-		os << pars.min_features[i] << " ";
-	os << " alpha:";
-	for (int i = 0; i < pars.alpha.size (); i++)
-		os << pars.alpha[i] << " ";
-	os << " model:" << pars.model;
-	os << " option_length:";
-	for (int i = 0; i < pars.option_length.size (); i++)
-		os << pars.option_length[i] << " ";
-	os << " ensemble:" << pars.ensemble <<
-		" k:" << pars.max_components <<
-		" seed:" << pars.seed << " out_dir:" << pars.out_path << " ]\n";
+  os << "[Parameters --" <<
+    "problem:" << pars.problem_name << " min_instances:";
+  for (int i = 0; i < pars.min_instances.size (); i++)
+    os << pars.min_instances[i] << " ";
+  os << " min_features:";
+  for (int i = 0; i < pars.min_features.size (); i++)
+    os << pars.min_features[i] << " ";
+  os << " alpha:";
+  for (int i = 0; i < pars.alpha.size (); i++)
+    os << pars.alpha[i] << " ";
+  os << " model:" << pars.model;
+  os << " option_length:";
+  for (int i = 0; i < pars.option_length.size (); i++)
+    os << pars.option_length[i] << " ";
+  os << " ensemble:" << pars.ensemble <<
+    " k:" << pars.max_components <<
+    " seed:" << pars.seed << " out_dir:" << pars.out_path << " ]\n";
 
-	return os;
+  return os;
 }

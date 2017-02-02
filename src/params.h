@@ -30,33 +30,33 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class params
 {
  public:
-	std::string problem_name;
-	std::vector < int >min_instances;
-	std::vector < int >min_features;
-	int seed;
-	std::vector < double >alpha;
-	std::string out_path;
-	std::string model;
-	std::vector < int >option_length;
-	bool ensemble;
-	int max_components;
+  std::string problem_name;
+  std::vector < int >min_instances;
+  std::vector < int >min_features;
+  int seed;
+  std::vector < double >alpha;
+  std::string out_path;
+  std::string model;
+  std::vector < int >option_length;
+  bool ensemble;
+  int max_components;
 
-	friend std::ostream & operator<< (std::ostream & os, const params &);
+  friend std::ostream & operator<< (std::ostream & os, const params &);
 };
 
 
 class paramsexp
 {
  public:
-	std::string problem_name;
-	int min_instances;
-	int min_features;
-	double alpha;
-	std::string out_path;
-	std::string model;
-	std::vector < int >option_length;
-	bool ensemble;
-	int max_components;
+  std::string problem_name;
+  int min_instances;
+  int min_features;
+  double alpha;
+  std::string out_path;
+  std::string model;
+  std::vector < int >option_length;
+  bool ensemble;
+  int max_components;
 };
 
 

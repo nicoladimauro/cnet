@@ -38,62 +38,62 @@ main (int argc, char **argv)
 {
 
 
-	// setting default values
-	char *data_file_name = NULL;
-	int min_instances = 100;
-	int min_features = 4;
+  // setting default values
+  char *data_file_name = NULL;
+  int min_instances = 100;
+  int min_features = 4;
 
-	int iarg = 0;
+  int iarg = 0;
 
-	while (iarg != -1)
-		{
-			iarg = getopt (argc, argv, "hi:d:s:");
-			switch (iarg)
-				{
-				case 'h':
-					break;
+  while (iarg != -1)
+    {
+      iarg = getopt (argc, argv, "hi:d:s:");
+      switch (iarg)
+        {
+        case 'h':
+          break;
 
-				case 'i':
-					data_file_name = optarg;
-					break;
+        case 'i':
+          data_file_name = optarg;
+          break;
 
-				case 'd':
-					min_instances = atoi (optarg);
-					break;
+        case 'd':
+          min_instances = atoi (optarg);
+          break;
 
-				case 's':
-					min_features = atoi (optarg);
-					break;
-				}
-		}
+        case 's':
+          min_features = atoi (optarg);
+          break;
+        }
+    }
 
-	if (data_file_name == NULL)
-		{
-			std::cout << "The dataset name is required!" << std::endl;
-			return 0;
-		}
+  if (data_file_name == NULL)
+    {
+      std::cout << "The dataset name is required!" << std::endl;
+      return 0;
+    }
 
-	// print options
-	std::cout << "Parameters -- data:" << data_file_name << " min_instances:" <<
-		min_instances << " min_features:" << min_features << std::endl;
+  // print options
+  std::cout << "Parameters -- data:" << data_file_name << " min_instances:" <<
+    min_instances << " min_features:" << min_features << std::endl;
 
-	// loading data
+  // loading data
 
 
-	dataset train_data (data_file_name);
-	std::cout << "Loaded " << train_data.
-		shape[0] << " instances on " << train_data.
-		shape[1] << " variables, sparsity: " << train_data.sparsity << std::endl;
+  dataset train_data (data_file_name);
+  std::cout << "Loaded " << train_data.
+    shape[0] << " instances on " << train_data.
+    shape[1] << " variables, sparsity: " << train_data.sparsity << std::endl;
 
-	cltree C;
-	auto t1 = std::chrono::high_resolution_clock::now ();
-	C.fit (train_data, 1);
-	std::cout << "Training ll: " << mean (C.eval (train_data)) << std::endl;
-	auto t2 = std::chrono::high_resolution_clock::now ();
-	std::cout << "Elapsed time: "
-						<< std::chrono::duration_cast < std::chrono::seconds > (t2 - t1).count ()
-						<< " seconds, "
-						<< std::chrono::duration_cast < std::chrono::milliseconds >
-		(t2 - t1).count () << " milliseconds\n";
+  cltree C;
+  auto t1 = std::chrono::high_resolution_clock::now ();
+  C.fit (train_data, 1);
+  std::cout << "Training ll: " << mean (C.eval (train_data)) << std::endl;
+  auto t2 = std::chrono::high_resolution_clock::now ();
+  std::cout << "Elapsed time: "
+            << std::chrono::duration_cast < std::chrono::seconds > (t2 - t1).count ()
+            << " seconds, "
+            << std::chrono::duration_cast < std::chrono::milliseconds >
+    (t2 - t1).count () << " milliseconds\n";
 
 }

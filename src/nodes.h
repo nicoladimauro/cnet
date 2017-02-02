@@ -38,79 +38,79 @@ typedef int node_type;
 
 class node
 {
-	static int _id_counter;
-	node_type _type;
-	int _id;
+  static int _id_counter;
+  node_type _type;
+  int _id;
  public:
-	node (node_type);
-	~node ();
-	static void init_id_counter ();
+  node (node_type);
+  ~node ();
+  static void init_id_counter ();
 
-	std::vector < int >_scope;
-	int _scope_length;
-	// std::weak_ptr used to break circular references of std::shared_ptr,
-	// no memory leak
-	std::weak_ptr < node > _parent;
-	std::vector < int >_row_idx;
-	int _depth;
+  std::vector < int >_scope;
+  int _scope_length;
+  // std::weak_ptr used to break circular references of std::shared_ptr,
+  // no memory leak
+  std::weak_ptr < node > _parent;
+  std::vector < int >_row_idx;
+  int _depth;
 
-	int get_id () const;
-	node_type get_type () const;
-	virtual std::vector < double >eval (dataset &) = 0;
-	virtual std::vector < double >eval (dataset &, std::vector < int >&) = 0;
+  int get_id () const;
+  node_type get_type () const;
+  virtual std::vector < double >eval (dataset &) = 0;
+  virtual std::vector < double >eval (dataset &, std::vector < int >&) = 0;
 };
 
 class tree_node:public node
 {
-	std::shared_ptr < cltree > _tree;
+  std::shared_ptr < cltree > _tree;
  public:
-	tree_node (std::shared_ptr < cltree >);
-	void fit (dataset &, double);
-	std::vector < double >eval (dataset &);
-	std::vector < double >eval (dataset &, std::vector < int >&);
+  tree_node (std::shared_ptr < cltree >);
+  void fit (dataset &, double);
+  std::vector < double >eval (dataset &);
+  std::vector < double >eval (dataset &, std::vector < int >&);
 };
 
 
 class or_node:public node
 {
  private:
-	std::shared_ptr < node > _left_child;
-	std::shared_ptr < node > _right_child;
-	double _left_weight;
-	double _right_weight;
-	int _or_feature;
+  std::shared_ptr < node > _left_child;
+  std::shared_ptr < node > _right_child;
+  double _left_weight;
+  double _right_weight;
+  int _or_feature;
  public:
-	int get_or_feature ();
-	double get_left_weight ();
-	double get_right_weight ();
+  int get_or_feature ();
+  double get_left_weight ();
+  double get_right_weight ();
 
-	void set_left_child (const std::shared_ptr < node > &);
-	void set_right_child (const std::shared_ptr < node >);
-	std::shared_ptr < node > get_left_child ();
-	std::shared_ptr < node > get_right_child ();
-	or_node (std::shared_ptr < tree_node > &, std::shared_ptr < tree_node > &,
-					 double, double, int);
+  void set_left_child (const std::shared_ptr < node > &);
+  void set_right_child (const std::shared_ptr < node >);
+  std::shared_ptr < node > get_left_child ();
+  std::shared_ptr < node > get_right_child ();
+  or_node (std::shared_ptr < tree_node > &, std::shared_ptr < tree_node > &,
+           double, double, int);
 
-	std::vector < double >eval (dataset &);
-	std::vector < double >eval (dataset &, std::vector < int >&);
+  std::vector < double >eval (dataset &);
+  std::vector < double >eval (dataset &, std::vector < int >&);
 };
 
 
 class option_node:public node
 {
-	std::vector < std::shared_ptr < or_node > >_children;
-	std::vector < double >_weights;
+  std::vector < std::shared_ptr < or_node > >_children;
+  std::vector < double >_weights;
  public:
-	option_node ();
-	option_node (std::vector < std::shared_ptr < or_node > >&,
-							 std::vector < double >&);
-	void push_back_child (const std::shared_ptr < or_node >);
-	void push_back_weight (const double);
-	std::shared_ptr < or_node > get_child (int);
-	double get_weight (int);
-	int n_children ();
-	std::vector < double >eval (dataset &);
-	std::vector < double >eval (dataset &, std::vector < int >&);
+  option_node ();
+  option_node (std::vector < std::shared_ptr < or_node > >&,
+               std::vector < double >&);
+  void push_back_child (const std::shared_ptr < or_node >);
+  void push_back_weight (const double);
+  std::shared_ptr < or_node > get_child (int);
+  double get_weight (int);
+  int n_children ();
+  std::vector < double >eval (dataset &);
+  std::vector < double >eval (dataset &, std::vector < int >&);
 };
 
 

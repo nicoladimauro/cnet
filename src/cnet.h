@@ -29,7 +29,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <map>
 #include <random>
 #include <algorithm>
-#include <iomanip>		// std::setprecision
+#include <iomanip>    // std::setprecision
 
 #include "dataset.h"
 #include "cltree.h"
@@ -41,56 +41,56 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class cnet
 {
  public:
-	cnet ();
-	virtual void fit (dataset & X, paramsexp &);
-	virtual std::vector < double >eval (dataset & X);
-	int _n_or_nodes = 0;
-	int _n_tree_nodes = 0;
-	int _n_option_nodes = 0;
-	int _max_depth = 0;
-	double _mean_depth = 0.0;
-	void compute_stats ();
-	bool is_pdf ();
+  cnet ();
+  virtual void fit (dataset & X, paramsexp &);
+  virtual std::vector < double >eval (dataset & X);
+  int _n_or_nodes = 0;
+  int _n_tree_nodes = 0;
+  int _n_option_nodes = 0;
+  int _max_depth = 0;
+  double _mean_depth = 0.0;
+  void compute_stats ();
+  bool is_pdf ();
  protected:
-	std::shared_ptr < node > _root;
-	bool make_or_node (dataset &, std::shared_ptr < tree_node >, double,
-										 double &, double &, std::shared_ptr < tree_node > &,
-										 std::shared_ptr < tree_node > &, double);
+  std::shared_ptr < node > _root;
+  bool make_or_node (dataset &, std::shared_ptr < tree_node >, double,
+                     double &, double &, std::shared_ptr < tree_node > &,
+                     std::shared_ptr < tree_node > &, double);
 };
 
 class xcnet:public cnet
 {
  public:
-	void fit (dataset & X, paramsexp &);
+  void fit (dataset & X, paramsexp &);
  protected:
-	bool make_or_node (dataset &, std::shared_ptr < tree_node > n,
-										 std::shared_ptr < tree_node > &,
-										 std::shared_ptr < tree_node > &, double);
+  bool make_or_node (dataset &, std::shared_ptr < tree_node > n,
+                     std::shared_ptr < tree_node > &,
+                     std::shared_ptr < tree_node > &, double);
 
 };
 
 class optioncnet:public cnet
 {
  public:
-	void fit (dataset & X, paramsexp &);
+  void fit (dataset & X, paramsexp &);
  protected:
-	bool make_option_node (dataset &, std::shared_ptr < tree_node >, int,
-												 std::vector < std::shared_ptr < tree_node > >&,
-												 std::vector < std::shared_ptr < tree_node > >&,
-												 std::vector < double >&, std::vector < double >&,
-												 double);
+  bool make_option_node (dataset &, std::shared_ptr < tree_node >, int,
+                         std::vector < std::shared_ptr < tree_node > >&,
+                         std::vector < std::shared_ptr < tree_node > >&,
+                         std::vector < double >&, std::vector < double >&,
+                         double);
 };
 
 class optionxcnet:public xcnet
 {
  public:
-	void fit (dataset & X, paramsexp &);
+  void fit (dataset & X, paramsexp &);
  protected:
-	bool make_option_node (dataset &, std::shared_ptr < tree_node >, int,
-												 std::vector < std::shared_ptr < tree_node > >&,
-												 std::vector < std::shared_ptr < tree_node > >&,
-												 std::vector < double >&, std::vector < double >&,
-												 double);
+  bool make_option_node (dataset &, std::shared_ptr < tree_node >, int,
+                         std::vector < std::shared_ptr < tree_node > >&,
+                         std::vector < std::shared_ptr < tree_node > >&,
+                         std::vector < double >&, std::vector < double >&,
+                         double);
 };
 
 #endif

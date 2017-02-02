@@ -31,10 +31,10 @@ random_generator;
 extern int
 verbose;
 
-#define SOFT_ASSERT(Cond_, Text_)																				\
-	while (not (Cond_)) {																									\
-		std::cerr << "\n[" __FILE__ << ":" << __LINE__ << ": " << Text_ << "]" << std::endl; \
-		abort();																														\
-	}
+#define SOFT_ASSERT(Cond_, Text_)                                       \
+  while (not (Cond_)) {                                                 \
+    std::cerr << "\n[" __FILE__ << ":" << __LINE__ << ": " << Text_ << "]" << std::endl; \
+    abort();                                                            \
+  }
 
 #endif

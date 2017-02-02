@@ -25,89 +25,89 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void
 split (const std::string & s, char delim, std::vector < std::string > &elems)
 {
-	std::stringstream ss (s);
-	std::string item;
-	int i = 0;
-	while (getline (ss, item, delim))
-		{
-			elems[i] = item;
-			i++;
-		}
+  std::stringstream ss (s);
+  std::string item;
+  int i = 0;
+  while (getline (ss, item, delim))
+    {
+      elems[i] = item;
+      i++;
+    }
 }
 
 int
 splits (const std::string & s, char delim)
 {
-	std::stringstream ss (s);
-	std::string item;
-	int i = 0;
-	while (getline (ss, item, delim))
-		{
-			i++;
-		}
-	return i;
+  std::stringstream ss (s);
+  std::string item;
+  int i = 0;
+  while (getline (ss, item, delim))
+    {
+      i++;
+    }
+  return i;
 }
 
 
 dataset::dataset (const std::string file_name)
 {
-	std::ifstream data_file;
-	std::string line;
+  std::ifstream data_file;
+  std::string line;
 
 
-	std::cout << "Loading data: ";
+  std::cout << "Loading data: ";
 
-	int rows = 0, cols = 0;
+  int rows = 0, cols = 0;
 
-	data_file.open (file_name);
+  data_file.open (file_name);
 
-	SOFT_ASSERT (data_file, " error: " + file_name + " not found!");
+  SOFT_ASSERT (data_file, " error: " + file_name + " not found!");
 
-	while (getline (data_file, line))
-		{
-			if (line.length ())
-	rows++;
-			if (rows == 1)
-	cols = splits (line, ',');
-		}
-	data_file.close ();
+  while (getline (data_file, line))
+    {
+      if (line.length ())
+  rows++;
+      if (rows == 1)
+  cols = splits (line, ',');
+    }
+  data_file.close ();
 
 
-	std::cout << rows << " and " << cols << " cols" << std::endl;
-	data.resize (rows);
-	for (int i = 0; i < rows; i++)
-		data[i].resize (cols);
+  std::cout << rows << " and " << cols << " cols" << std::endl;
+  data.resize (rows);
+  for (int i = 0; i < rows; i++)
+    data[i].resize (cols);
 
-	int r = 0;
-	std::vector < std::string > tokens;
-	tokens.resize (cols);
-	data_file.open (file_name);
-	if (data_file)
-		{
-			while (getline (data_file, line))
-				if (line.length ())
-					{
-						split (line, ',', tokens);
-						for (unsigned int i = 0; i < tokens.size (); i++)
-							data[r][i] = atoi (tokens[i].c_str ());
-						r++;
-					}
-			data_file.close ();
-		}
-	shape[0] = data.size ();
-	shape[1] = data[0].size ();
+  int r = 0;
+  std::vector < std::string > tokens;
+  tokens.resize (cols);
+  data_file.open (file_name);
+  if (data_file)
+    {
+      while (getline (data_file, line))
+        if (line.length ())
+          {
+            split (line, ',', tokens);
+            for (unsigned int i = 0; i < tokens.size (); i++)
+              data[r][i] = atoi (tokens[i].c_str ());
+            r++;
+          }
+      data_file.close ();
+    }
+  shape[0] = data.size ();
+  shape[1] = data[0].size ();
 
-	sparsity = 0;
-	for (int i = 0; i < shape[0]; i++)
-		{
-			std::vector < int >example;
-			for (int j = 0; j < shape[1]; j++)
-				if (data[i][j] != 0)
-					{
-						example.push_back (j);
-						sparsity++;
-					}
-			lil_data.push_back (example);
-		}
-	sparsity /= shape[0] * shape[1];
+  sparsity = 0;
+  for (int i = 0; i < shape[0]; i++)
+    {
+      std::vector < int >example;
+      for (int j = 0; j < shape[1]; j++)
+        if (data[i][j] != 0)
+          {
+            example.push_back (j);
+            sparsity++;
+          }
+      lil_data.push_back (example);
+    }
+  sparsity /= shape[0] * shape[1];
 }
