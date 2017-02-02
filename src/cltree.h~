@@ -19,59 +19,40 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 *************************************************************************************/
-#ifndef _UTILS
-#define _UTILS
+#ifndef _CLTREE
+#define _CLTREE
 
+#include <cmath>
+#include <limits>
+#include <iostream>
 #include <vector>
-#include <numeric>
-#include <algorithm>
+#include <cassert>
 
-template < class T > double
-mean (std::vector < T > v)
+#include "dataset.h"
+#include "globals.h"
+#include <rarray>
+
+void minumum_spanning_tree(rarray<double, 2> &, int n, int *);
+
+
+class cltree
 {
-	return (double) std::accumulate (v.begin (), v.end (), 0.0) / v.size ();
-}
+	rarray<double, 2> _log_probs;
+	rarray<double, 4> _log_j_probs;
+	rarray<double, 3> _log_factors;
+	int _n_vars;
+	int * _tree;
+	bool _fitted;
+	void compute_log_probs(dataset &, double);
+	void compute_log_probs(dataset &X, std::vector<int> &, std::vector<int>&, int, double);
+ public:
+	cltree();
+	std::vector<double> eval(dataset &);
+	std::vector<double> eval(dataset &, std::vector<int> &, std::vector<int>&);
+	void fit(dataset &, double);
+	void fit(dataset &, int, std::vector<int> &, std::vector<int>&, int, double);
+	~cltree();
+};
 
-template < class T > std::vector < double >
-log_sum_exp (std::vector < std::vector < T > >models_ll,
-						 std::vector < double >log_weight, int n)
-{
-	std::vector < double >
-		lls;
-
-	unsigned int
-		lls_size = models_ll[0].size ();
-	lls.resize (lls_size, 0.0);
-
-	for (int i = 0; i < lls_size; i++)
-		{
-			// log-sum-exp trick
-			double
-				maxLogVal = models_ll[0][i] + log_weight[0];
-			for (int k = 1; k < n; k++)
-				if ((models_ll[k][i] + log_weight[k]) > maxLogVal)
-					maxLogVal = models_ll[k][i] + log_weight[k];
-			double
-				lse = 0.0;
-			for (int k = 0; k < n; k++)
-				lse += exp (models_ll[k][i] + log_weight[k] - maxLogVal);
-			lls[i] = maxLogVal + log (lse);
-		}
-	return lls;
-}
-
-
-template < class T > double
-stdev (std::vector < T > v, double mean)
-{
-
-	if (v.size () == 1)
-		return 0;
-	double
-		accum = 0.0;
-	std::for_each (std::begin (v), std::end (v),
-								 [&](const double d) {accum += (d - mean) * (d - mean);});
-	return sqrt (accum / (v.size () - 1));
-}
 
 #endif
