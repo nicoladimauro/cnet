@@ -107,7 +107,7 @@ cnet::compute_stats ()
       else if (current_node->get_type () == OPTION_NODE)
         {
           _n_option_nodes++;
-          for (int i = 0;
+          for (unsigned int i = 0;
                i < std::static_pointer_cast < option_node >
                  (current_node)->n_children (); i++)
             nodes_to_process.push (std::static_pointer_cast < option_node >
@@ -255,11 +255,10 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
           if (std::static_pointer_cast < or_node >
               (n->_parent.lock ())->get_left_child () == n)
             {
-              std::shared_ptr < or_node > newOrNode =
-                std::make_shared < or_node > (left_tree_node, right_tree_node,
-                                              left_w, right_w, split_feature);
               std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->set_left_child (newOrNode);
+                (n->_parent.lock ())->set_left_child (std::make_shared < or_node >
+                                                      (left_tree_node, right_tree_node,
+                                                       left_w, right_w, split_feature));
 
               left_tree_node->_parent =
                 std::static_pointer_cast < or_node >
@@ -273,12 +272,9 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
           else
             {
               std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->set_right_child (std::make_shared <
-                                                       or_node >
-                                                       (left_tree_node,
-                                                        right_tree_node,
-                                                        left_w, right_w,
-                                                        split_feature));
+                (n->_parent.lock ())->set_right_child (std::make_shared <or_node >
+                                                       (left_tree_node, right_tree_node,
+                                                        left_w, right_w, split_feature));
 
               left_tree_node->_parent =
                 std::static_pointer_cast < or_node >
@@ -299,8 +295,8 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
 void
 cnet::fit (dataset & X, paramsexp & input_parameters)
 {
-  int min_instances = input_parameters.min_instances;
-  int min_features = input_parameters.min_features;
+  unsigned int min_instances = input_parameters.min_instances;
+  unsigned int min_features = input_parameters.min_features;
 
 
   std::map < int, double >node_training_ll;
@@ -316,11 +312,11 @@ cnet::fit (dataset & X, paramsexp & input_parameters)
   if (verbose)
     std::cout << "Fitting the starting tree... ";
 
-  for (int i = 0; i < X.shape[1]; i++)
+  for (unsigned int i = 0; i < X.shape[1]; i++)
     _root->_scope.push_back (1);
   _root->_scope_length = X.shape[1];
 
-  for (int i = 0; i < X.shape[0]; i++)
+  for (unsigned int i = 0; i < X.shape[0]; i++)
     _root->_row_idx.push_back (i);
   _root->_depth = 1;
 
@@ -385,7 +381,7 @@ xcnet::make_or_node (dataset & X,
 
   std::vector < int >candidate_splits;
 
-  for (int i = 0; i < n->_scope.size (); i++)
+  for (unsigned int i = 0; i < n->_scope.size (); i++)
     if (n->_scope[i])
       candidate_splits.push_back (i);
   shuffle (candidate_splits.begin(), candidate_splits.end(), random_generator);
@@ -402,8 +398,8 @@ xcnet::make_or_node (dataset & X,
       int rows_right = 0;
       std::vector < int >left_data_row_index, right_data_row_index;
 
-      int n_row_idx_size = n->_row_idx.size ();
-      for (int j = 0; j < n_row_idx_size; j++)
+      unsigned int n_row_idx_size = n->_row_idx.size ();
+      for (unsigned int j = 0; j < n_row_idx_size; j++)
         if (X.data[n->_row_idx[j]][splitFeature])
           {
             rows_right++;
@@ -517,17 +513,17 @@ void
 xcnet::fit (dataset & X, paramsexp & input_parameters)
 {
 
-  int min_instances = input_parameters.min_instances;
-  int min_features = input_parameters.min_features;
+  unsigned int min_instances = input_parameters.min_instances;
+  unsigned int min_features = input_parameters.min_features;
 
   // initially set the root of the network being a tree_node
   std::shared_ptr < cltree > root_cltree (new cltree);
   _root = std::make_shared < tree_node > (root_cltree);
 
-  for (int i = 0; i < X.shape[1]; i++)
+  for (unsigned int i = 0; i < X.shape[1]; i++)
     _root->_scope.push_back (1);
   _root->_scope_length = X.shape[1];
-  for (int i = 0; i < X.shape[0]; i++)
+  for (unsigned int i = 0; i < X.shape[0]; i++)
     _root->_row_idx.push_back (i);
   _root->_depth = 1;
 
@@ -584,7 +580,7 @@ xcnet::fit (dataset & X, paramsexp & input_parameters)
 
 bool
 optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
-                              int option_node_length,
+                              unsigned int option_node_length,
                               std::vector < std::shared_ptr < tree_node >
                               >&left_nodes,
                               std::vector < std::shared_ptr < tree_node >
@@ -675,7 +671,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                 {
                   int minPos = 0;
                   double minValue = best_ll[0];
-                  for (int k = 1; k < option_node_length; k++)
+                  for (unsigned int k = 1; k < option_node_length; k++)
                     if (best_ll[k] < minValue)
                       {
                         minPos = k;
@@ -698,7 +694,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   if (verbose)
     {
       std::cout << "on features ";
-      for (int k = 0; k < split_feature.size (); k++)
+      for (unsigned int k = 0; k < split_feature.size (); k++)
         std::cout << split_feature[k] << " ";
       std::cout << std::endl;
       std::cout.flush ();
@@ -710,7 +706,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   std::vector < std::shared_ptr < or_node > >or_nodes;
   std::vector < double >weights;
 
-  for (int k = 0; k < split_feature.size (); k++)
+  for (unsigned int k = 0; k < split_feature.size (); k++)
     {
 
       double left_w, right_w;
@@ -755,7 +751,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
     {
       _root =
         std::make_shared < option_node > (option_node (or_nodes, weights));
-      for (int k = 0; k < split_feature.size (); k++)
+      for (unsigned int k = 0; k < split_feature.size (); k++)
         or_nodes[k]->_parent = _root;
     }
   else
@@ -769,7 +765,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                                                   (option_node
                                                    (or_nodes, weights)));
 
-          for (int k = 0; k < split_feature.size (); k++)
+          for (unsigned int k = 0; k < split_feature.size (); k++)
             or_nodes[k]->_parent =
               std::static_pointer_cast < or_node >
               (n->_parent.lock ())->get_left_child ();
@@ -783,7 +779,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                                                    option_node >
                                                    (option_node
                                                     (or_nodes, weights)));
-          for (int k = 0; k < split_feature.size (); k++)
+          for (unsigned int k = 0; k < split_feature.size (); k++)
             or_nodes[k]->_parent =
               std::static_pointer_cast < or_node >
               (n->_parent.lock ())->get_right_child ();
@@ -798,12 +794,12 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
 void
 optioncnet::fit (dataset & X, paramsexp & input_parameters)
 {
-  int option_depth = input_parameters.option_length.size ();
-  int option_node_length;
+  unsigned int option_depth = input_parameters.option_length.size ();
+  unsigned int option_node_length;
 
 
-  int min_instances = input_parameters.min_instances;
-  int min_features = input_parameters.min_features;
+  unsigned int min_instances = input_parameters.min_instances;
+  unsigned int min_features = input_parameters.min_features;
   std::map < int, double >node_training_ll;
   std::shared_ptr < cltree > root_cltree (new cltree);
   std::shared_ptr < tree_node > n;
@@ -815,10 +811,10 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
   if (verbose)
     std::cout << "Fitting the starting tree... ";
 
-  for (int i = 0; i < X.shape[1]; i++)
+  for (unsigned int i = 0; i < X.shape[1]; i++)
     _root->_scope.push_back (1);
   _root->_scope_length = X.shape[1];
-  for (int i = 0; i < X.shape[0]; i++)
+  for (unsigned int i = 0; i < X.shape[0]; i++)
     _root->_row_idx.push_back (i);
   _root->_depth = 1;
 
@@ -854,7 +850,7 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
             make_option_node (X, n, option_node_length, leftNodes, rightNodes,
                               leftLL, rightLL, input_parameters.alpha);
           if (option_node_created)
-            for (int k = 0; k < leftNodes.size (); k++)
+            for (unsigned int k = 0; k < leftNodes.size (); k++)
               {
                 node_training_ll[leftNodes[k]->get_id ()] = leftLL[k];
                 node_training_ll[rightNodes[k]->get_id ()] = rightLL[k];
@@ -901,7 +897,7 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
 
 bool
 optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
-                               int option_node_length,
+                               unsigned int option_node_length,
                                std::vector < std::shared_ptr < tree_node >
                                >&left_nodes,
                                std::vector < std::shared_ptr < tree_node >
@@ -927,18 +923,18 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
 
   std::vector < int >candidate_splits;
 
-  for (int i = 0; i < n->_scope.size (); i++)
+  for (unsigned int i = 0; i < n->_scope.size (); i++)
     if (n->_scope[i])
       candidate_splits.push_back (i);
 
   shuffle (candidate_splits.begin(), candidate_splits.end(), random_generator);
 
-  for (int k = 0; k < option_node_length; k++)
+  for (unsigned int k = 0; k < option_node_length; k++)
     {
       bool found_feature = false;
       while (candidate_splits.size() && !found_feature)
         {
-          int i = candidate_splits.back();
+          unsigned int i = candidate_splits.back();
           candidate_splits.pop_back();
 
           if (n->_scope[i])
@@ -951,7 +947,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
               int rows_right = 0;
               std::vector < int >left_data_row_index, right_data_row_index;
 
-              for (int j = 0; j < n->_row_idx.size (); j++)
+              for (unsigned int j = 0; j < n->_row_idx.size (); j++)
                 if (X.data[n->_row_idx[j]][i])
                   {
                     rows_right++;
@@ -1002,9 +998,9 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                     }
                   else
                     {
-                      int minPos = 0;
+                      unsigned int minPos = 0;
                       double minValue = best_ll[0];
-                      for (int k = 1; k < option_node_length; k++)
+                      for (unsigned int k = 1; k < option_node_length; k++)
                         if (best_ll[k] < minValue)
                           {
                             minPos = k;
@@ -1028,7 +1024,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   if (verbose)
     {
       std::cout << "on features ";
-      for (int k = 0; k < split_feature.size (); k++)
+      for (unsigned int k = 0; k < split_feature.size (); k++)
         std::cout << split_feature[k] << " ";
       std::cout << std::endl;
       std::cout.flush ();
@@ -1040,7 +1036,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   std::vector < std::shared_ptr < or_node > >or_nodes;
   std::vector < double >weights;
 
-  for (int k = 0; k < split_feature.size (); k++)
+  for (unsigned int k = 0; k < split_feature.size (); k++)
     {
 
       double left_w, right_w;
@@ -1085,7 +1081,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
     {
       _root =
         std::make_shared < option_node > (option_node (or_nodes, weights));
-      for (int k = 0; k < split_feature.size (); k++)
+      for (unsigned int k = 0; k < split_feature.size (); k++)
         or_nodes[k]->_parent = _root;
     }
   else
@@ -1099,7 +1095,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                                                   (option_node
                                                    (or_nodes, weights)));
 
-          for (int k = 0; k < split_feature.size (); k++)
+          for (unsigned int k = 0; k < split_feature.size (); k++)
             or_nodes[k]->_parent =
               std::static_pointer_cast < or_node >
               (n->_parent.lock ())->get_left_child ();
@@ -1113,7 +1109,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                                                    option_node >
                                                    (option_node
                                                     (or_nodes, weights)));
-          for (int k = 0; k < split_feature.size (); k++)
+          for (unsigned int k = 0; k < split_feature.size (); k++)
             or_nodes[k]->_parent =
               std::static_pointer_cast < or_node >
               (n->_parent.lock ())->get_right_child ();
@@ -1130,11 +1126,11 @@ void
 optionxcnet::fit (dataset & X, paramsexp & input_parameters)
 {
 
-  int option_depth = input_parameters.option_length.size ();
-  int option_node_length;
+  unsigned int option_depth = input_parameters.option_length.size ();
+  unsigned int option_node_length;
 
-  int min_instances = input_parameters.min_instances;
-  int min_features = input_parameters.min_features;
+  unsigned int min_instances = input_parameters.min_instances;
+  unsigned int min_features = input_parameters.min_features;
 
   if (verbose)
     std::cout << "Random CNET ... " << std::endl;
@@ -1143,10 +1139,10 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
   std::shared_ptr < cltree > root_cltree (new cltree);
   _root = std::make_shared < tree_node > (root_cltree);
 
-  for (int i = 0; i < X.shape[1]; i++)
+  for (unsigned int i = 0; i < X.shape[1]; i++)
     _root->_scope.push_back (1);
   _root->_scope_length = X.shape[1];
-  for (int i = 0; i < X.shape[0]; i++)
+  for (unsigned int i = 0; i < X.shape[0]; i++)
     _root->_row_idx.push_back (i);
   _root->_depth = 1;
 
@@ -1181,7 +1177,7 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
             make_option_node (X, n, option_node_length, leftNodes, rightNodes,
                               leftLL, rightLL, input_parameters.alpha);
           if (option_node_created)
-            for (int k = 0; k < leftNodes.size (); k++)
+            for (unsigned int k = 0; k < leftNodes.size (); k++)
               {
                 if (leftNodes[k]->_scope_length > min_features
                     && leftNodes[k]->_row_idx.size () > min_instances)

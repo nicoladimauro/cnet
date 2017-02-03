@@ -47,12 +47,12 @@ class node
   static void init_id_counter ();
 
   std::vector < int >_scope;
-  int _scope_length;
+  unsigned int _scope_length;
   // std::weak_ptr used to break circular references of std::shared_ptr,
   // no memory leak
   std::weak_ptr < node > _parent;
   std::vector < int >_row_idx;
-  int _depth;
+  unsigned int _depth;
 
   int get_id () const;
   node_type get_type () const;
@@ -78,9 +78,9 @@ class or_node:public node
   std::shared_ptr < node > _right_child;
   double _left_weight;
   double _right_weight;
-  int _or_feature;
+  unsigned int _or_feature;
  public:
-  int get_or_feature ();
+  unsigned int get_or_feature ();
   double get_left_weight ();
   double get_right_weight ();
 
@@ -108,7 +108,7 @@ class option_node:public node
   void push_back_weight (const double);
   std::shared_ptr < or_node > get_child (int);
   double get_weight (int);
-  int n_children ();
+  unsigned int n_children ();
   std::vector < double >eval (dataset &);
   std::vector < double >eval (dataset &, std::vector < int >&);
 };

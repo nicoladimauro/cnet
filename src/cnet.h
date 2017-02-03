@@ -47,7 +47,7 @@ class cnet
   int _n_or_nodes = 0;
   int _n_tree_nodes = 0;
   int _n_option_nodes = 0;
-  int _max_depth = 0;
+  unsigned int _max_depth = 0;
   double _mean_depth = 0.0;
   void compute_stats ();
   bool is_pdf ();
@@ -74,7 +74,7 @@ class optioncnet:public cnet
  public:
   void fit (dataset & X, paramsexp &);
  protected:
-  bool make_option_node (dataset &, std::shared_ptr < tree_node >, int,
+  bool make_option_node (dataset &, std::shared_ptr < tree_node >, unsigned int,
                          std::vector < std::shared_ptr < tree_node > >&,
                          std::vector < std::shared_ptr < tree_node > >&,
                          std::vector < double >&, std::vector < double >&,
@@ -86,7 +86,7 @@ class optionxcnet:public xcnet
  public:
   void fit (dataset & X, paramsexp &);
  protected:
-  bool make_option_node (dataset &, std::shared_ptr < tree_node >, int,
+  bool make_option_node (dataset &, std::shared_ptr < tree_node >, unsigned int,
                          std::vector < std::shared_ptr < tree_node > >&,
                          std::vector < std::shared_ptr < tree_node > >&,
                          std::vector < double >&, std::vector < double >&,

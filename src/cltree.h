@@ -39,7 +39,7 @@ class cltree
   rarray < double, 2 > _log_probs;
   rarray < double, 4 > _log_j_probs;
   rarray < double, 3 > _log_factors;
-  int _n_vars;
+  unsigned int _n_vars;
   int *_tree;
   bool _fitted;
   void compute_log_probs (dataset &, double);

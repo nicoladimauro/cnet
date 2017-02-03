@@ -39,7 +39,7 @@ class params
   std::string model;
   std::vector < int >option_length;
   bool ensemble;
-  int max_components;
+  unsigned int max_components;
 
   friend std::ostream & operator<< (std::ostream & os, const params &);
 };

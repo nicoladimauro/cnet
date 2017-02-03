@@ -98,10 +98,10 @@ dataset::dataset (const std::string file_name)
   shape[1] = data[0].size ();
 
   sparsity = 0;
-  for (int i = 0; i < shape[0]; i++)
+  for (unsigned int i = 0; i < shape[0]; i++)
     {
       std::vector < int >example;
-      for (int j = 0; j < shape[1]; j++)
+      for (unsigned int j = 0; j < shape[1]; j++)
         if (data[i][j] != 0)
           {
             example.push_back (j);

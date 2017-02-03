@@ -45,7 +45,7 @@ template < class M > class enscnet:public ensemble
  private:
   std::vector < std::shared_ptr < M > >_models;
   std::vector < double >_weights;
-  int _n_models;
+  unsigned int _n_models;
  public:
   bool is_pdf (int);
   enscnet (int);
@@ -56,7 +56,7 @@ template < class M > class enscnet:public ensemble
 template < class M > enscnet < M >::enscnet (int n_models)
 {
   _n_models = n_models;
-  for (int i = 0; i < n_models; i++)
+  for (unsigned int i = 0; i < n_models; i++)
     {
       _models.push_back (std::make_shared < M > (M ()));
     }
@@ -65,7 +65,7 @@ template < class M > enscnet < M >::enscnet (int n_models)
 template < class M >
 void enscnet < M >::fit (dataset & X, paramsexp & input_parameters)
 {
-  for (int i = 0; i < _n_models; i++)
+  for (unsigned int i = 0; i < _n_models; i++)
     {
       _models[i]->fit (X, input_parameters);
     }
@@ -74,7 +74,7 @@ void enscnet < M >::fit (dataset & X, paramsexp & input_parameters)
 template <>
 void enscnet < cnet >::fit (dataset & X, paramsexp & input_parameters)
 {
-  for (int i = 0; i < _n_models; i++)
+  for (unsigned int i = 0; i < _n_models; i++)
     {
       dataset bootstrap;
 
@@ -82,7 +82,7 @@ void enscnet < cnet >::fit (dataset & X, paramsexp & input_parameters)
       bootstrap.shape[1] = X.shape[1];
       bootstrap.sparsity = X.sparsity;
 
-      for (int k = 0; k < X.shape[0]; k++)
+      for (unsigned int k = 0; k < X.shape[0]; k++)
         {
           std::uniform_int_distribution < int >distribution (0,
                                                              X.shape[0] - 1);
@@ -98,7 +98,7 @@ void enscnet < cnet >::fit (dataset & X, paramsexp & input_parameters)
 template <>
 void enscnet < optioncnet >::fit (dataset & X, paramsexp & input_parameters)
 {
-  for (int i = 0; i < _n_models; i++)
+  for (unsigned int i = 0; i < _n_models; i++)
     {
       dataset bootstrap;
 
@@ -106,7 +106,7 @@ void enscnet < optioncnet >::fit (dataset & X, paramsexp & input_parameters)
       bootstrap.shape[1] = X.shape[1];
       bootstrap.sparsity = X.sparsity;
 
-      for (int k = 0; k < X.shape[0]; k++)
+      for (unsigned int k = 0; k < X.shape[0]; k++)
         {
           std::uniform_int_distribution < int >distribution (0,
                                                              X.shape[0] - 1);
@@ -129,7 +129,7 @@ M >::eval (dataset & X)
     models_ll;
 
   lls.resize (X.shape[0], 0.0);
-  for (int i = 0; i < _n_models; i++)
+  for (unsigned int i = 0; i < _n_models; i++)
     models_ll.push_back (_models[i]->eval (X));
 
   return models_ll;
@@ -144,7 +144,7 @@ template < class M > bool enscnet < M >::is_pdf (int nc)
   std::vector < std::vector < int >>
     pools;
 
-  for (int i = 0; i < l; ++i)
+  for (unsigned int i = 0; i < l; ++i)
     {
       std::vector < int >
         v = { 0, 1 };
@@ -170,8 +170,7 @@ template < class M > bool enscnet < M >::is_pdf (int nc)
 
   SOFT_ASSERT (result.size () == pow (2, l), "error: possible worlds!");
 
-  dataset
-    X;
+  dataset X;
   X.shape[0] = pow (2, l);
   X.shape[1] = l;
   X.data = result;

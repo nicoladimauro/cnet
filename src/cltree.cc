@@ -70,7 +70,8 @@ cltree::cltree ()
 std::vector < double >
 cltree::eval (dataset & X)
 {
-  int i, r, p;
+  unsigned int i, r;
+  int p;
 
   SOFT_ASSERT (_fitted, "error: cltree is not fitted!");
   SOFT_ASSERT (_n_vars == X.shape[1],
@@ -99,21 +100,22 @@ std::vector < double >
 cltree::eval (dataset & X, std::vector < int >&rows_idx,
               std::vector < int >&scope)
 {
-  int i, r, p;
+  unsigned int i, r;
+  int p;
 
   SOFT_ASSERT (_fitted, "error: cltree is not fitted!");
 
   std::vector < double >lls (rows_idx.size (), 0.0);
 
   std::vector < int >scope_assoc;
-  int scope_size = scope.size ();
+  unsigned int scope_size = scope.size ();
   for (i = 0; i < scope_size; ++i)
     if (scope[i])
       scope_assoc.push_back (i);
 
   SOFT_ASSERT (_n_vars == scope_assoc.size (),
                "error: cltree and data have not the same dimesion!");
-  int rows_idx_size = rows_idx.size ();
+  unsigned int rows_idx_size = rows_idx.size ();
   for (r = 0; r < rows_idx_size; ++r)
     {
       double prob = 0;
@@ -139,7 +141,7 @@ void
 cltree::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
              std::vector < int >&scope, int scope_length, double alpha)
 {
-  int i, j;
+  unsigned int i, j;
 
   _fitted = true;
   _n_vars = scope_length;
@@ -204,7 +206,7 @@ cltree::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
 void
 cltree::fit (dataset & X, double alpha)
 {
-  int i, j;
+  unsigned int i, j;
 
   _n_vars = X.shape[1];
   _fitted = true;

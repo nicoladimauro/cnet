@@ -75,17 +75,17 @@ main (int argc, char **argv)
   if (args_info.problem_given)
     input_parameters.problem_name = args_info.problem_arg;
   if (args_info.min_inst_given)
-    for (int i = 0; i < args_info.min_inst_given; i++)
+    for (unsigned int i = 0; i < args_info.min_inst_given; i++)
       input_parameters.min_instances.push_back (args_info.min_inst_arg[i]);
   else
     input_parameters.min_instances.push_back (args_info.min_inst_arg[0]);
   if (args_info.min_feat_given)
-    for (int i = 0; i < args_info.min_feat_given; i++)
+    for (unsigned int i = 0; i < args_info.min_feat_given; i++)
       input_parameters.min_features.push_back (args_info.min_feat_arg[i]);
   else
     input_parameters.min_features.push_back (args_info.min_feat_arg[0]);
   if (args_info.alpha_given)
-    for (int i = 0; i < args_info.alpha_given; i++)
+    for (unsigned int i = 0; i < args_info.alpha_given; i++)
       input_parameters.alpha.push_back (args_info.alpha_arg[i]);
   else
     input_parameters.alpha.push_back (args_info.alpha_arg[0]);
@@ -95,7 +95,7 @@ main (int argc, char **argv)
   input_parameters.model = args_info.model_arg;
 
   if (args_info.option_length_given)
-    for (int i = 0; i < args_info.option_length_given; i++)
+    for (unsigned int i = 0; i < args_info.option_length_given; i++)
       input_parameters.option_length.push_back (args_info.
                                                 option_length_arg[i]);
   else
@@ -152,11 +152,11 @@ main (int argc, char **argv)
     "max_depth_m, max_depth_s, mean_depth_m, mean_depth_s, train_ll_m, train_ll_s, valid_ll_m, valid_ll_s, test_ll_m, test_ll_s"
          << std::endl;
 
-  for (int mi = 0; mi < input_parameters.min_instances.size (); mi++)
+  for (unsigned int mi = 0; mi < input_parameters.min_instances.size (); mi++)
     {
-      for (int mf = 0; mf < input_parameters.min_features.size (); mf++)
+      for (unsigned int mf = 0; mf < input_parameters.min_features.size (); mf++)
         {
-          for (int ma = 0; ma < input_parameters.alpha.size (); ma++)
+          for (unsigned int ma = 0; ma < input_parameters.alpha.size (); ma++)
             {
 
               output << input_parameters.min_instances[mi] << "," <<

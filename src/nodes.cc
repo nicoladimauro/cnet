@@ -114,7 +114,7 @@ std::shared_ptr < node > or_node::get_right_child ()
   return _right_child;
 }
 
-int
+unsigned int
 or_node::get_or_feature ()
 {
   return _or_feature;
@@ -174,7 +174,7 @@ or_node::eval (dataset & X)
 {
   std::vector < int >rows;
   rows.resize (X.shape[0]);
-  for (int i = 0; i < X.shape[0]; i++)
+  for (unsigned int i = 0; i < X.shape[0]; i++)
     rows[i] = i;
 
   return eval (X, rows);
@@ -188,7 +188,7 @@ option_node::option_node ():node (OPTION_NODE)
 option_node::option_node (std::vector < std::shared_ptr < or_node > >&or_nodes,
                           std::vector < double >&weights) : node(OPTION_NODE)
 {
-  for (int i = 0; i < or_nodes.size (); i++)
+  for (unsigned int i = 0; i < or_nodes.size (); i++)
     {
       _children.push_back (or_nodes[i]);
       _weights.push_back (weights[i]);
@@ -219,7 +219,7 @@ option_node::get_weight (int id)
   return _weights[id];
 }
 
-int
+unsigned int
 option_node::n_children ()
 {
   return _children.size ();
@@ -230,7 +230,7 @@ option_node::eval (dataset & X)
 {
   std::vector < int >rows;
   rows.resize (X.shape[0]);
-  for (int i = 0; i < X.shape[0]; i++)
+  for (unsigned int i = 0; i < X.shape[0]; i++)
     rows[i] = i;
 
   return eval (X, rows);
@@ -244,27 +244,27 @@ option_node::eval (dataset & X, std::vector < int >&row_idx)
   lls.resize (row_idx.size (), 0.0);
 
   std::vector < std::vector < double >>children_ll;
-  for (int i = 0; i < n_children (); i++)
+  for (unsigned int i = 0; i < n_children (); i++)
     children_ll.push_back (_children[i]->eval (X, row_idx));
 
   std::vector < double >log_weights;
-  for (int i = 0; i < _weights.size (); i++)
+  for (unsigned int i = 0; i < _weights.size (); i++)
     log_weights.push_back (log (_weights[i]));
-  int row_idx_size = row_idx.size ();
-  for (int i = 0; i < row_idx_size; i++)
+  unsigned int row_idx_size = row_idx.size ();
+  for (unsigned int i = 0; i < row_idx_size; i++)
     {
 
       // log-sum-exp trick
       children_ll[0][i] += log_weights[0];
       double max_log_val = children_ll[0][i];
-      for (int k = 1; k < n_children (); k++)
+      for (unsigned int k = 1; k < n_children (); k++)
         {
           children_ll[k][i] += log_weights[k];
           if (children_ll[k][i] > max_log_val)
             max_log_val = children_ll[k][i];
         }
       double lse = 0.0;
-      for (int k = 0; k < n_children (); k++)
+      for (unsigned int k = 0; k < n_children (); k++)
         lse += exp (children_ll[k][i] - max_log_val);
       lls[i] = max_log_val + log (lse);
     }

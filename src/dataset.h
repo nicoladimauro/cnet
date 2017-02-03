@@ -38,7 +38,7 @@ int splits (const std::string &, char);
 class dataset
 {
  public:
-  int shape[2];
+  unsigned int shape[2];
   std::vector < std::vector < int >>lil_data;
   std::vector < std::vector < int >>data;
   double sparsity;
