@@ -284,8 +284,8 @@ cltree::compute_log_probs (dataset & X, double alpha)
   _log_probs.fill (0.0);
   _log_j_probs.fill (0.0);
 
-  rarray < unsigned int, 2 > cooccurences (n_cols, n_cols);
-  cooccurences.fill (0);
+  rarray < unsigned int, 2 > cooccurrences (n_cols, n_cols);
+  cooccurrences.fill (0);
 
   for (k = 0; k < n_rows; ++k)
     {
@@ -294,19 +294,19 @@ cltree::compute_log_probs (dataset & X, double alpha)
       for (i = 0; i < row_size; ++i)
         for (j = i; j < row_size; ++j)
           {
-            cooccurences[row_values[i]][row_values[j]]++;
+            cooccurrences[row_values[i]][row_values[j]]++;
           }
     }
 
   for (i = 1; i < n_cols; i++)
     for (j = 0; j < i; j++)
-      cooccurences[i][j] = cooccurences[j][i];
+      cooccurrences[i][j] = cooccurrences[j][i];
 
   // additive smoothing, also called Laplace smoothing
   for (i = 0; i < n_cols; i++)
     {
       double prob =
-        ((double) cooccurences[i][i] + alpha) / ((double) n_rows + 2 * alpha);
+        ((double) cooccurrences[i][i] + alpha) / ((double) n_rows + 2 * alpha);
       _log_probs[i][0] = log (1 - prob);
       _log_probs[i][1] = log (prob);
     }
@@ -315,11 +315,11 @@ cltree::compute_log_probs (dataset & X, double alpha)
   double cc_ii, cc_ij, cc_jj;
   for (i = 0; i < n_cols; i++)
     {
-      cc_ii = cooccurences[i][i];
+      cc_ii = cooccurrences[i][i];
       for (j = i; j < n_cols; j++)
         {
-          cc_ij = cooccurences[i][j];
-          cc_jj = cooccurences[j][j];
+          cc_ij = cooccurrences[i][j];
+          cc_jj = cooccurrences[j][j];
           _log_j_probs[i][j][1][1] = log ((cc_ij + alpha) / det);
           _log_j_probs[i][j][0][1] = log ((cc_jj - cc_ij + alpha) / det);
           _log_j_probs[i][j][1][0] = log ((cc_ii - cc_ij + alpha) / det);
@@ -364,41 +364,37 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
         }
     }
 
-  rarray < unsigned int, 2 > cooccurences (n_cols, n_cols);
-  cooccurences.fill (0);
+  rarray < unsigned int, 2 > cooccurrences (n_cols, n_cols);
+  cooccurrences.fill (0);
 
-
+  std::vector<int> epurated(scope_size);
+  int epurated_l;
   for (k = 0; k < n_rows; ++k)
     {
       int r = rows_i[k];
       std::vector < int >&rdata = X.lil_data[r];
       int rdata_size = rdata.size ();
-      for (i = 0; i < rdata_size; ++i)
+      epurated_l = 0;
+      for (i=0;i<rdata_size;i++)
         {
-          int var1 = rdata[i];
-          if (scope[var1])
-            for (j = i; j < rdata_size; ++j)
-              {
-                int var2 = rdata[j];
-                if (scope[var2])
-                  {
-                    ++cooccurences[scope_assoc[var1]][scope_assoc[var2]];
-                  }
-              }
+          int v = rdata[i];
+          if (scope[v])
+            epurated[epurated_l++] = v;
         }
+      for (i = 0; i < epurated_l; ++i)
+        for (j = i; j < epurated_l; ++j)
+          ++cooccurrences[scope_assoc[epurated[i]]][scope_assoc[epurated[j]]];
     }
 
   for (i = 1; i < n_cols; i++)
     for (j = 0; j < i; j++)
-      cooccurences[i][j] = cooccurences[j][i];
-
-
+      cooccurrences[i][j] = cooccurrences[j][i];
 
   // additive smoothing
   for (i = 0; i < n_cols; i++)
     {
       double prob =
-        ((double) cooccurences[i][i] + alpha) / ((double) n_rows + 2 * alpha);
+        ((double) cooccurrences[i][i] + alpha) / ((double) n_rows + 2 * alpha);
       _log_probs[i][0] = log (1 - prob);
       _log_probs[i][1] = log (prob);
     }
@@ -407,11 +403,11 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
   double cc_ii, cc_ij, cc_jj;
   for (i = 0; i < n_cols; i++)
     {
-      cc_ii = cooccurences[i][i];
+      cc_ii = cooccurrences[i][i];
       for (j = i; j < n_cols; j++)
         {
-          cc_ij = cooccurences[i][j];
-          cc_jj = cooccurences[j][j];
+          cc_ij = cooccurrences[i][j];
+          cc_jj = cooccurrences[j][j];
           _log_j_probs[i][j][1][1] = log ((cc_ij + alpha) / det);
           _log_j_probs[i][j][0][1] = log ((cc_jj - cc_ij + alpha) / det);
           _log_j_probs[i][j][1][0] = log ((cc_ii - cc_ij + alpha) / det);
