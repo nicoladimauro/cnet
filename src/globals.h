@@ -23,6 +23,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _GLOBALS
 
 #include <random>
+#include <rarray>
 
 extern
 std::mt19937

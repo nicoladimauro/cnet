@@ -200,7 +200,6 @@ cltree::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
       }
   _log_probs.clear ();
   _log_j_probs.clear ();
-
 }
 
 void
@@ -216,6 +215,7 @@ cltree::fit (dataset & X, double alpha)
   // Compute MI
   rarray < double, 2 > MI (_n_vars, _n_vars);
   MI.fill (0.0);
+
   for (i = 0; i < _n_vars; i++)
     for (j = i + 1; j < _n_vars; j++)
       {
@@ -356,18 +356,16 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
   std::vector < int >scope_assoc (scope_size);
   int c = 0;
   for (i = 0; i < scope_size; i++)
-    {
-      if (scope[i])
-        {
-          scope_assoc[i] = c;
-          c++;
-        }
-    }
+    if (scope[i])
+      {
+        scope_assoc[i] = c;
+        c++;
+      }
 
   rarray < unsigned int, 2 > cooccurrences (n_cols, n_cols);
   cooccurrences.fill (0);
 
-  std::vector<int> epurated(scope_size);
+  std::vector<int> scoped_epurated(scope_size);
   int epurated_l;
   for (k = 0; k < n_rows; ++k)
     {
@@ -379,11 +377,14 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
         {
           int v = rdata[i];
           if (scope[v])
-            epurated[epurated_l++] = v;
+            scoped_epurated[epurated_l++] = scope_assoc[v];
         }
       for (i = 0; i < epurated_l; ++i)
-        for (j = i; j < epurated_l; ++j)
-          ++cooccurrences[scope_assoc[epurated[i]]][scope_assoc[epurated[j]]];
+        {
+          unsigned int se = scoped_epurated[i];
+          for (j = i; j < epurated_l; ++j)
+            ++cooccurrences[se][scoped_epurated[j]];
+        }
     }
 
   for (i = 1; i < n_cols; i++)
