@@ -115,6 +115,7 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
 
   SOFT_ASSERT (_n_vars == scope_assoc.size (),
                "error: cltree and data have not the same dimesion!");
+
   unsigned int rows_idx_size = rows_idx.size ();
   for (r = 0; r < rows_idx_size; ++r)
     {
@@ -128,12 +129,12 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
           else
             prob =
               prob +
-              _log_factors[i][row_data[scope_assoc[i]]][row_data
-                                                        [scope_assoc[p]]];
+              _log_factors[i][row_data[scope_assoc[i]]][row_data[scope_assoc[p]]];
         }
       lls[r] = prob;
     }
   return lls;
+
 }
 
 
@@ -161,7 +162,8 @@ cltree::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
           j_prob_11 = _log_j_probs[i][j][1][1],
           prob_i0 = _log_probs[i][0],
           prob_i1 = _log_probs[i][1],
-          prob_j0 = _log_probs[j][0], prob_j1 = _log_probs[j][1];
+          prob_j0 = _log_probs[j][0],
+          prob_j1 = _log_probs[j][1];
 
         MI[i][j] += exp (j_prob_00) * (j_prob_00 - prob_i0 - prob_j0);
         MI[i][j] += exp (j_prob_01) * (j_prob_01 - prob_i0 - prob_j1);
@@ -200,6 +202,7 @@ cltree::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
       }
   _log_probs.clear ();
   _log_j_probs.clear ();
+
 }
 
 void
