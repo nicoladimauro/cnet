@@ -965,55 +965,14 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                   std::vector < int >scope = n->_scope;
                   scope[i] = 0;
 
-                  left_clt->fit (X, rows_left, left_data_row_index, scope,
-                                 n->_scope_length - 1, alpha);
-                  right_clt->fit (X, rows_right, right_data_row_index, scope,
-                                  n->_scope_length - 1, alpha);
-
-                  double left_ll =
-                    mean (left_clt->eval (X, left_data_row_index, scope));
-                  double right_ll =
-                    mean (right_clt->eval (X, right_data_row_index, scope));
-                  double split_ll =
-                    ((left_ll +
-                      log ((double) rows_left / (rows_left + rows_right))) *
-                     rows_left + (right_ll +
-                                  log ((double) rows_right /
-                                       (rows_left +
-                                        rows_right))) * rows_right) / (rows_left +
-                                                                       rows_right);
-
                   if (best_left_clt.size() < option_node_length)
                     {
                       best_left_clt.push_back (left_clt);
                       best_right_clt.push_back (right_clt);
-                      best_left_ll.push_back (left_ll);
-                      best_right_ll.push_back (right_ll);
-                      best_ll.push_back (split_ll);
                       best_left_data_row_index.push_back (left_data_row_index);
                       best_right_data_row_index.push_back (right_data_row_index);
                       split_feature.push_back (i);
                       scope_split.push_back (scope);
-                    }
-                  else
-                    {
-                      unsigned int minPos = 0;
-                      double minValue = best_ll[0];
-                      for (unsigned int k = 1; k < option_node_length; k++)
-                        if (best_ll[k] < minValue)
-                          {
-                            minPos = k;
-                            minValue = best_ll[k];
-                          }
-                      best_left_clt[minPos] = left_clt;
-                      best_right_clt[minPos] = right_clt;
-                      best_left_ll[minPos] = left_ll;
-                      best_right_ll[minPos] = right_ll;
-                      best_ll[minPos] = split_ll;
-                      best_left_data_row_index[minPos] = left_data_row_index;
-                      best_right_data_row_index[minPos] = right_data_row_index;
-                      split_feature[minPos] = i;
-                      scope_split[minPos] = scope;
                     }
                 }
             }
@@ -1181,9 +1140,13 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
                 if (leftNodes[k]->_scope_length > min_features
                     && leftNodes[k]->_row_idx.size () > min_instances)
                   nodes_to_process.push (leftNodes[k]);
+                else
+                  leftNodes[k]->fit (X, input_parameters.alpha);
                 if (rightNodes[k]->_scope_length > min_features
                     && rightNodes[k]->_row_idx.size () > min_instances)
                   nodes_to_process.push (rightNodes[k]);
+                else
+                  rightNodes[k]->fit (X, input_parameters.alpha);
               }
         }
       if (!option_node_created)
