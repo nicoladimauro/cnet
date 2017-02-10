@@ -25,6 +25,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <fstream>
 
 template < class T > double
 mean (std::vector < T > v)
@@ -65,13 +66,35 @@ template < class T > double
 stdev (std::vector < T > v, double mean)
 {
 
-  if (v.size () == 1)
-    return 0;
-  double
-    accum = 0.0;
-  std::for_each (std::begin (v), std::end (v),
+if (v.size () == 1)
+  return 0;
+double
+accum = 0.0;
+std::for_each (std::begin (v), std::end (v),
                  [&](const double d) {accum += (d - mean) * (d - mean);});
-  return sqrt (accum / (v.size () - 1));
+return sqrt (accum / (v.size () - 1));
+}
+
+template <class T>
+void serialize(std::vector<T> v, std::string filename){
+
+  std::ofstream o(filename, std::ios_base::binary);
+  unsigned v_size = v.size();
+  o.write ( reinterpret_cast<char *>(&v_size),sizeof(unsigned) );
+  o.write ( reinterpret_cast<char *>(&v[0]), v_size*sizeof(T) );
+  o.close();
+}
+
+template <class T>
+std::vector<T> deserialize(std::string filename){
+
+  std::vector<T> v;
+  std::ifstream i(filename, std::ios_base::binary);
+  unsigned v_size;
+  i.read ( reinterpret_cast<char *>(&v_size),sizeof(unsigned) );
+  i.read ( reinterpret_cast<char *>(&v[0]), v_size*sizeof(T) );
+  i.close();
+  return v;
 }
 
 #endif

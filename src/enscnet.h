@@ -129,10 +129,6 @@ enscnet <M >::eval (dataset & X)
   for (unsigned int i = 0; i < _n_models; i++)
     models_ll.push_back (_models[i]->eval (X));
 
-  /*  std::cout << "LL : ";
-  for (unsigned int i = 0; i < _n_models; i++)
-    std::cout << mean(models_ll[i]) << " ";
-  */
   return models_ll;
 }
 

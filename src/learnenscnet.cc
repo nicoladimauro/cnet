@@ -35,6 +35,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "enscnet.h"
 #include "globals.h"
 #include "cmdline.h"
+#include "utils.h"
 
 std::mt19937
 random_generator;
@@ -181,6 +182,7 @@ main (int argc, char **argv)
                   || input_parameters.model == "optionxcnet")
                 max_iterations = 10;
 
+              max_iterations = 1;
 
               std::vector < std::vector <
                               double >>time_accum (input_parameters.max_components);
@@ -248,6 +250,16 @@ main (int argc, char **argv)
                       train_lls = C->eval (train_data);
                       valid_lls = C->eval (valid_data);
                       test_lls = C->eval (test_data);
+
+                      for (unsigned mdls=0; mdls<input_parameters.max_components; mdls++)
+                        {
+                          if ((mdls % 10 == 0) | mdls == input_parameters.max_components -1)
+                            {
+                              serialize(train_lls[mdls], output_dir_name + "trainll_" + std::to_string(mdls));
+                              serialize(valid_lls[mdls], output_dir_name + "validll_" + std::to_string(mdls));
+                              serialize(test_lls[mdls], output_dir_name + "testll_" + std::to_string(mdls));
+                            }
+                        }
 
                       std::vector < double >uniform_weights (nc, log ((double) 1 / nc));
 
