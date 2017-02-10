@@ -108,7 +108,9 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
   std::vector < double >lls (rows_idx.size (), 0.0);
 
   std::vector < int >scope_assoc;
-  unsigned int scope_size = scope.size ();
+ 
+
+ unsigned int scope_size = scope.size ();
   for (i = 0; i < scope_size; ++i)
     if (scope[i])
       scope_assoc.push_back (i);
@@ -117,6 +119,20 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
                "error: cltree and data have not the same dimesion!");
 
   unsigned int rows_idx_size = rows_idx.size ();
+  double lp;
+  std::vector<int> data_row(_n_vars);
+  for (r = 0; r < rows_idx_size; ++r)
+    {
+      std::vector < int >&row_data = X.data[rows_idx[r]];
+      for (i = 0; i < _n_vars; ++i)
+        data_row[i] = row_data[scope_assoc[i]];
+      lp = _log_factors[0][data_row[0]][0];
+      for (i = 1; i < _n_vars; ++i)
+        lp += _log_factors[i][data_row[i]][data_row[_tree[i]]];
+      lls[r] = lp;
+    }
+
+  /*
   for (r = 0; r < rows_idx_size; ++r)
     {
       double prob = 0;
@@ -133,6 +149,7 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
         }
       lls[r] = prob;
     }
+  */
   return lls;
 
 }

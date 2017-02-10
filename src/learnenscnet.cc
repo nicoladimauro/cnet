@@ -241,7 +241,7 @@ main (int argc, char **argv)
                               std::chrono::milliseconds >
                     (t2 - t1).count () / 1000 << " s";
 
-                  for (unsigned int nc = 2;
+                  for (unsigned int nc = input_parameters.max_components-1;
                        nc < input_parameters.max_components; nc++)
                     {
 
@@ -249,9 +249,7 @@ main (int argc, char **argv)
                       valid_lls = C->eval (valid_data);
                       test_lls = C->eval (test_data);
 
-                      std::vector < double >uniform_weights (nc,
-                                                             log ((double) 1 /
-                                                                  nc));
+                      std::vector < double >uniform_weights (nc, log ((double) 1 / nc));
 
                       double train_ll =
                         mean (log_sum_exp (train_lls, uniform_weights, nc));

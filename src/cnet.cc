@@ -607,7 +607,6 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   int scope_size = n->_scope.size ();
   for (int i = 0; i < scope_size; i++)
     {
-
       if (n->_scope[i])
         {
 

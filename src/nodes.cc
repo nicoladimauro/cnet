@@ -253,7 +253,6 @@ option_node::eval (dataset & X, std::vector < int >&row_idx)
   unsigned int row_idx_size = row_idx.size ();
   for (unsigned int i = 0; i < row_idx_size; i++)
     {
-
       // log-sum-exp trick
       children_ll[0][i] += log_weights[0];
       double max_log_val = children_ll[0][i];
