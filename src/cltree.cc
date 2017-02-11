@@ -326,12 +326,12 @@ cltree::compute_log_probs (dataset & X, double alpha)
   for (i = 0; i < n_cols; i++)
     {
       double prob =
-        ((double) cooccurrences[i][i] + alpha) / ((double) n_rows + 2 * alpha);
-      _log_probs[i][0] = log (1 - prob);
+        ((double) cooccurrences[i][i] + 2*alpha) / ((double) n_rows + 4 * alpha);
+      _log_probs[i][0] = log ((double) 1 - prob);
       _log_probs[i][1] = log (prob);
     }
 
-  double det = (n_rows + 4 * alpha);
+  double det = ((double) n_rows + 4 * alpha);
   double cc_ii, cc_ij, cc_jj;
   for (i = 0; i < n_cols; i++)
     {
@@ -340,11 +340,11 @@ cltree::compute_log_probs (dataset & X, double alpha)
         {
           cc_ij = cooccurrences[i][j];
           cc_jj = cooccurrences[j][j];
-          _log_j_probs[i][j][1][1] = log ((cc_ij + alpha) / det);
-          _log_j_probs[i][j][0][1] = log ((cc_jj - cc_ij + alpha) / det);
-          _log_j_probs[i][j][1][0] = log ((cc_ii - cc_ij + alpha) / det);
+          _log_j_probs[i][j][1][1] = log (((double) cc_ij + alpha) / det);
+          _log_j_probs[i][j][0][1] = log (((double) cc_jj - cc_ij + alpha) / det);
+          _log_j_probs[i][j][1][0] = log (((double) cc_ii - cc_ij + alpha) / det);
           _log_j_probs[i][j][0][0] =
-            log ((n_rows - cc_jj - cc_ii + cc_ij + alpha) / det);
+            log (((double) n_rows - cc_jj - cc_ii + cc_ij + alpha) / det);
 
           _log_j_probs[j][i][1][1] = _log_j_probs[i][j][1][1];
           _log_j_probs[j][i][1][0] = _log_j_probs[i][j][0][1];
@@ -415,12 +415,12 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
   for (i = 0; i < n_cols; i++)
     {
       double prob =
-        ((double) cooccurrences[i][i] + alpha) / ((double) n_rows + 2 * alpha);
-      _log_probs[i][0] = log (1 - prob);
+        ((double) cooccurrences[i][i] + 2*alpha) / ((double) n_rows + 4 * alpha);
+      _log_probs[i][0] = log ((double) 1 - prob);
       _log_probs[i][1] = log (prob);
     }
 
-  double det = (n_rows + 4 * alpha);
+  double det = ((double) n_rows + 4 * alpha);
   double cc_ii, cc_ij, cc_jj;
   for (i = 0; i < n_cols; i++)
     {
@@ -429,11 +429,11 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
         {
           cc_ij = cooccurrences[i][j];
           cc_jj = cooccurrences[j][j];
-          _log_j_probs[i][j][1][1] = log ((cc_ij + alpha) / det);
-          _log_j_probs[i][j][0][1] = log ((cc_jj - cc_ij + alpha) / det);
-          _log_j_probs[i][j][1][0] = log ((cc_ii - cc_ij + alpha) / det);
+          _log_j_probs[i][j][1][1] = log (((double) cc_ij + alpha) / det);
+          _log_j_probs[i][j][0][1] = log (((double) cc_jj - cc_ij + alpha) / det);
+          _log_j_probs[i][j][1][0] = log (((double) cc_ii - cc_ij + alpha) / det);
           _log_j_probs[i][j][0][0] =
-            log ((n_rows - cc_jj - cc_ii + cc_ij + alpha) / det);
+            log (((double) n_rows - cc_jj - cc_ii + cc_ij + alpha) / det);
 
           _log_j_probs[j][i][1][1] = _log_j_probs[i][j][1][1];
           _log_j_probs[j][i][1][0] = _log_j_probs[i][j][0][1];
