@@ -182,8 +182,6 @@ main (int argc, char **argv)
                   || input_parameters.model == "optionxcnet")
                 max_iterations = 10;
 
-              max_iterations = 1;
-
               std::vector < std::vector <
                               double >>time_accum (input_parameters.max_components);
               std::vector < std::vector <
@@ -227,10 +225,9 @@ main (int argc, char **argv)
                     C =
                       std::make_shared < enscnet < optionxcnet >
                                          >(input_parameters.max_components);
-
                   C->fit (train_data, pars);
 
-                  // C->is_pdf(5);
+                  //C->is_pdf(40);
 
                   auto t2 = std::chrono::high_resolution_clock::now ();
 
