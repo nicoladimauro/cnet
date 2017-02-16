@@ -44,7 +44,7 @@ minumum_spanning_tree (rarray < double, 2 > &M, int n, int *tree)
       double min = std::numeric_limits < double >::max ();
       int min_index;
       for (int v = 0; v < n; v++)
-        if (selected[v] == false && key[v] < min)
+        if (selected[v] == false && key[v] <= min)
           {
             min = key[v];
             min_index = v;
@@ -52,7 +52,7 @@ minumum_spanning_tree (rarray < double, 2 > &M, int n, int *tree)
       selected[min_index] = true;
       for (int v = 0; v < n; v++)
         if (M[min_index][v] && selected[v] == false
-            && M[min_index][v] < key[v])
+            && M[min_index][v] <= key[v])
           {
             tree[v] = min_index;
             key[v] = M[min_index][v];
@@ -108,7 +108,7 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
   std::vector < double >lls (rows_idx.size (), 0.0);
 
   std::vector < int >scope_assoc;
- 
+
 
  unsigned int scope_size = scope.size ();
   for (i = 0; i < scope_size; ++i)
@@ -186,7 +186,7 @@ cltree::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
         MI[i][j] += exp (j_prob_01) * (j_prob_01 - prob_i0 - prob_j1);
         MI[i][j] += exp (j_prob_10) * (j_prob_10 - prob_i1 - prob_j0);
         MI[i][j] += exp (j_prob_11) * (j_prob_11 - prob_i1 - prob_j1);
-        MI[i][j] *= -1.0;
+        MI[i][j] = MI[i][j] * -1.0 - 1;
 
         MI[j][i] = MI[i][j];
       }
@@ -255,7 +255,7 @@ cltree::fit (dataset & X, double alpha)
           exp (_log_j_probs[i][j][1][1]) * (_log_j_probs[i][j][1][1] -
                                             _log_probs[i][1] -
                                             _log_probs[j][1]);
-        MI[i][j] *= -1.0;
+        MI[i][j] = MI[i][j] * -1.0 - 1;
         MI[j][i] = MI[i][j];
       }
 
@@ -415,7 +415,7 @@ cltree::compute_log_probs (dataset & X, std::vector < int >&rows_i,
   for (i = 0; i < n_cols; i++)
     {
       double prob =
-        ((double) cooccurrences[i][i] + 2*alpha) / ((double) n_rows + 4 * alpha);
+          ((double) cooccurrences[i][i] + 2*alpha) / ((double) n_rows + 4 * alpha);
       _log_probs[i][0] = log ((double) 1 - prob);
       _log_probs[i][1] = log (prob);
     }
