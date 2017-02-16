@@ -148,10 +148,8 @@ main (int argc, char **argv)
   output << ";; " << input_parameters;
   output << ";; " << std::endl;
   output <<
-    ";; components, min_instances, min_features, alpha, time_m, time_s, or_nodes_m, or_nodes_s, tree_nodes_m, tree_nodes_s, option_nodes_m, option_nodes_s,"
-         <<
-    "max_depth_m, max_depth_s, mean_depth_m, mean_depth_s, train_ll_m, train_ll_s, valid_ll_m, valid_ll_s, test_ll_m, test_ll_s"
-         << std::endl;
+    ";; components, min_instances, min_features, alpha, learn_time_m, learn_time_s, eval_time_m, eval_time_s," <<
+    " train_ll_m, train_ll_s, valid_ll_m, valid_ll_s, test_ll_m, test_ll_s" << std::endl;
 
   for (unsigned int mi = 0; mi < input_parameters.min_instances.size (); mi++)
     {
@@ -183,7 +181,9 @@ main (int argc, char **argv)
                 max_iterations = 10;
 
               std::vector < std::vector <
-                              double >>time_accum (input_parameters.max_components);
+                              double >>learn_time_accum (input_parameters.max_components);
+              std::vector < std::vector <
+                              double >>eval_time_accum (input_parameters.max_components);
               std::vector < std::vector <
                               int >>or_nodes_accum (input_parameters.max_components);
               std::vector < std::vector <
@@ -207,44 +207,35 @@ main (int argc, char **argv)
                   std::shared_ptr < ensemble > C;
 
                   std::cout << "\n    iter:" << iter << " ";
-                  auto t1 = std::chrono::high_resolution_clock::now ();
 
                   if (input_parameters.model == "cnet")
-                    C =
-                      std::make_shared < enscnet < cnet >
-                                         >(input_parameters.max_components);
+                    C = std::make_shared < enscnet < cnet >>(input_parameters.max_components);
                   if (input_parameters.model == "xcnet")
-                    C =
-                      std::make_shared < enscnet < xcnet >
-                                         >(input_parameters.max_components);
+                    C = std::make_shared < enscnet < xcnet > >(input_parameters.max_components);
                   if (input_parameters.model == "optioncnet")
-                    C =
-                      std::make_shared < enscnet < optioncnet >
-                                         >(input_parameters.max_components);
+                    C = std::make_shared < enscnet < optioncnet > >(input_parameters.max_components);
                   if (input_parameters.model == "optionxcnet")
-                    C =
-                      std::make_shared < enscnet < optionxcnet >
-                                         >(input_parameters.max_components);
+                    C = std::make_shared < enscnet < optionxcnet > >(input_parameters.max_components);
+
+                  auto t1 = std::chrono::high_resolution_clock::now ();
                   C->fit (train_data, pars);
-
-                  //C->is_pdf(40);
-
                   auto t2 = std::chrono::high_resolution_clock::now ();
 
                   std::vector < std::vector < double >>train_lls;
                   std::vector < std::vector < double >>valid_lls;
                   std::vector < std::vector < double >>test_lls;
 
-                  std::cout << "--> time:"
-                            << (double) std::chrono::duration_cast <
-                              std::chrono::milliseconds >
+                  std::cout << "--> learn_time:" << (double) std::chrono::duration_cast < std::chrono::milliseconds >
                     (t2 - t1).count () / 1000 << " s";
+                  std::cout.flush();
 
                   for (unsigned int nc = input_parameters.max_components-1;
                        nc < input_parameters.max_components; nc++)
                     {
 
+                      auto t3 = std::chrono::high_resolution_clock::now ();
                       train_lls = C->eval (train_data);
+                      auto t4 = std::chrono::high_resolution_clock::now ();
                       valid_lls = C->eval (valid_data);
                       test_lls = C->eval (test_data);
 
@@ -281,10 +272,15 @@ main (int argc, char **argv)
                                     << ", testLL:" << test_ll;
                         }
 
-                      time_accum[nc].
+                      learn_time_accum[nc].
                         push_back ((double) std::chrono::duration_cast <
                                    std::chrono::milliseconds >
                                    (t2 - t1).count () / 1000);
+
+                      eval_time_accum[nc].
+                        push_back ((double) std::chrono::duration_cast <
+                                   std::chrono::milliseconds >
+                                   (t4 - t3).count () / 1000);
 
                       /*
                         or_nodes_accum.push_back(C->_n_or_nodes);
@@ -310,24 +306,10 @@ main (int argc, char **argv)
                          << input_parameters.min_features[mf] << ","
                          << input_parameters.alpha[ma];
 
-                  double meanTime = mean (time_accum[nc]);
-                  output << "," << meanTime << "," << stdev (time_accum[nc],
-                                                             meanTime);
-                  double meanOr = mean (or_nodes_accum[nc]);
-                  output << "," << meanOr << "," << stdev (or_nodes_accum[nc],
-                                                           meanOr);
-                  double meanTree = mean (tree_nodes_accum[nc]);
-                  output << "," << meanTree << "," <<
-                    stdev (tree_nodes_accum[nc], meanTree);
-                  double meanOption = mean (option_nodes_accum[nc]);
-                  output << "," << meanOption << "," <<
-                    stdev (option_nodes_accum[nc], meanOption);
-                  double meanMaxDepth = mean (max_cnet_depth_accum[nc]);
-                  output << "," << meanMaxDepth << "," <<
-                    stdev (max_cnet_depth_accum[nc], meanMaxDepth);
-                  double meanMeanDepth = mean (mean_cnet_depth_accum[nc]);
-                  output << "," << meanMeanDepth << "," <<
-                    stdev (mean_cnet_depth_accum[nc], meanMeanDepth);
+                  double meanTime = mean (learn_time_accum[nc]);
+                  output << "," << meanTime << "," << stdev (learn_time_accum[nc], meanTime);
+                  meanTime = mean (eval_time_accum[nc]);
+                  output << "," << meanTime << "," << stdev (eval_time_accum[nc], meanTime);
 
                   double meanTrainLL = mean (train_ll_accum[nc]);
                   output << "," << meanTrainLL << "," <<
