@@ -37,6 +37,7 @@ class ensemble
  public:
   virtual void fit (dataset &, paramsexp &) = 0;
   virtual std::vector < std::vector < double >>eval (dataset &) = 0;
+  virtual std::vector < double >eval (dataset &, int) = 0;
   virtual bool is_pdf (int) = 0;
 };
 
@@ -51,6 +52,7 @@ template < class M > class enscnet:public ensemble
   enscnet (int);
   void fit (dataset &, paramsexp &);
   std::vector < std::vector < double >>eval (dataset &);
+  std::vector < double >eval (dataset &, int);
 };
 
 template < class M > enscnet < M >::enscnet (int n_models)
@@ -130,6 +132,12 @@ enscnet <M >::eval (dataset & X)
     models_ll.push_back (_models[i]->eval (X));
 
   return models_ll;
+}
+
+template < class M > std::vector < double >
+enscnet <M >::eval (dataset & X, int component)
+{
+  return _models[component]->eval (X);
 }
 
 template < class M > bool enscnet < M >::is_pdf (int nc)
