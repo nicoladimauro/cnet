@@ -180,27 +180,13 @@ main (int argc, char **argv)
                   || input_parameters.model == "optionxcnet")
                 max_iterations = 10;
 
-              std::vector < std::vector <
-                              double >>learn_time_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              double >>eval_time_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              int >>or_nodes_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              int >>tree_nodes_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              int >>option_nodes_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              int >>max_cnet_depth_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              double >>mean_cnet_depth_accum (input_parameters.
-                                                              max_components);
-              std::vector < std::vector <
-                              double >>train_ll_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              double >>valid_ll_accum (input_parameters.max_components);
-              std::vector < std::vector <
-                              double >>test_ll_accum (input_parameters.max_components);
+              max_iterations = 1;
+
+              double learn_time = 0;
+              double eval_time = 0;
+              double train_ll;
+              double valid_ll;
+              double test_ll;
 
               for (int iter = 0; iter < max_iterations; iter++)
                 {
@@ -225,103 +211,80 @@ main (int argc, char **argv)
                   std::vector < std::vector < double >>valid_lls;
                   std::vector < std::vector < double >>test_lls;
 
-                  std::cout << "--> learn_time:" << (double) std::chrono::duration_cast < std::chrono::milliseconds >
-                    (t2 - t1).count () / 1000 << " s";
-                  std::cout.flush();
+                  learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds >
+                    (t2 - t1).count () / 1000;
+ 
+                  /* no serialization 
+                  for (unsigned mdls=0; mdls<input_parameters.max_components; mdls++)
+                    {
+                      if ((mdls % 10 == 0) | mdls == input_parameters.max_components -1)
+                        {
+                          serialize(train_lls[mdls], output_dir_name + "trainll_" + std::to_string(mdls));
+                          serialize(valid_lls[mdls], output_dir_name + "validll_" + std::to_string(mdls));
+                          serialize(test_lls[mdls], output_dir_name + "testll_" + std::to_string(mdls));
+                        }
+                    }
+                  */
 
-                  for (unsigned int nc = input_parameters.max_components-1;
-                       nc < input_parameters.max_components; nc++)
+                  std::vector<double> global_train_lls;
+                  global_train_lls.resize (train_data.shape[0], 0.0);
+                  std::vector<double> global_valid_lls;
+                  global_valid_lls.resize (valid_data.shape[0], 0.0);
+                  std::vector<double> global_test_lls;
+                  global_test_lls.resize (test_data.shape[0], 0.0);
+
+                  for (unsigned nc = 0; nc < input_parameters.max_components; nc++)
                     {
 
-                      auto t3 = std::chrono::high_resolution_clock::now ();
-                      train_lls = C->eval (train_data);
-                      auto t4 = std::chrono::high_resolution_clock::now ();
-                      valid_lls = C->eval (valid_data);
-                      test_lls = C->eval (test_data);
-
-                      for (unsigned mdls=0; mdls<input_parameters.max_components; mdls++)
+                      auto te1 = std::chrono::high_resolution_clock::now ();
+                      std::vector<double> c_ll = C->eval(train_data,nc);
+                      double train_local_ll = 0;
+                      for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
                         {
-                          if ((mdls % 10 == 0) | mdls == input_parameters.max_components -1)
-                            {
-                              serialize(train_lls[mdls], output_dir_name + "trainll_" + std::to_string(mdls));
-                              serialize(valid_lls[mdls], output_dir_name + "validll_" + std::to_string(mdls));
-                              serialize(test_lls[mdls], output_dir_name + "testll_" + std::to_string(mdls));
-                            }
+                          global_train_lls[inst] += exp(c_ll[inst]);
+                          train_local_ll += log(global_train_lls[inst] / (nc + 1));
                         }
+                      train_local_ll /= train_data.shape[0];
+                      auto te2 = std::chrono::high_resolution_clock::now ();
+                      eval_time += (double) std::chrono::duration_cast < std::chrono::milliseconds >
+                        (te2 - te1).count () / 1000;
 
-                      std::vector < double >uniform_weights (nc, log ((double) 1 / nc));
-
-                      double train_ll =
-                        mean (log_sum_exp (train_lls, uniform_weights, nc));
-                      double valid_ll =
-                        mean (log_sum_exp (valid_lls, uniform_weights, nc));
-                      double test_ll =
-                        mean (log_sum_exp (test_lls, uniform_weights, nc));
-
-                      /*
-                        C->compute_stats();
-
-                        std::cout << " [Net stats -- or:" << C->_n_or_nodes << ", tr:" << C->_n_tree_nodes << ", op:" <<
-                        C->_n_option_nodes << ", maxd:" << C->_max_depth << ", meand:" << C->_mean_depth << "]";
-                      */
-
-                      if (nc == input_parameters.max_components - 1)
+                      c_ll = C->eval(valid_data,nc);
+                      double valid_local_ll = 0;
+                      for (unsigned inst = 0; inst<valid_data.shape[0]; inst++)
                         {
-                          std::cout << ", trainLL:" << train_ll
-                                    << ", validLL:" << valid_ll
-                                    << ", testLL:" << test_ll;
+                          global_valid_lls[inst] += exp(c_ll[inst]);
+                          valid_local_ll += log(global_valid_lls[inst] / (nc + 1));
                         }
+                      valid_local_ll /= valid_data.shape[0];
 
-                      learn_time_accum[nc].
-                        push_back ((double) std::chrono::duration_cast <
-                                   std::chrono::milliseconds >
-                                   (t2 - t1).count () / 1000);
+                      c_ll = C->eval(test_data,nc);
+                      double test_local_ll = 0;
+                      for (unsigned inst = 0; inst<test_data.shape[0]; inst++)
+                        {
+                          global_test_lls[inst] += exp(c_ll[inst]);
+                          test_local_ll += log(global_test_lls[inst] / (nc + 1));
+                        }
+                      test_local_ll /= test_data.shape[0];
 
-                      eval_time_accum[nc].
-                        push_back ((double) std::chrono::duration_cast <
-                                   std::chrono::milliseconds >
-                                   (t4 - t3).count () / 1000);
+                      std::cout << "ll: " << train_local_ll << " " << test_local_ll << std::endl;
 
-                      /*
-                        or_nodes_accum.push_back(C->_n_or_nodes);
-                        tree_nodes_accum.push_back(C->_n_tree_nodes);
-                        option_nodes_accum.push_back(C->_n_option_nodes);
-                        max_cnet_depth_accum.push_back(C->_max_depth);
-                        mean_cnet_depth_accum.push_back(C->_mean_depth);
-                      */
+                      output << nc + 1 << ","
+                             << input_parameters.min_instances[mi] << ","
+                             << input_parameters.min_features[mf] << ","
+                             << input_parameters.alpha[ma];
 
-                      train_ll_accum[nc].push_back (train_ll);
-                      valid_ll_accum[nc].push_back (valid_ll);
-                      test_ll_accum[nc].push_back (test_ll);
-                    }
+                      output << "," << learn_time << "," << eval_time;
+                      output << "," << train_local_ll << ",";
+                      output << "," << valid_local_ll << ",";
+                      output << "," << test_local_ll;
+                      output << std::endl;
+ 
 
+                   }
 
                 }
-              for (unsigned int nc = 1; nc < input_parameters.max_components;
-                   nc++)
-                {
 
-                  output << nc + 1 << ","
-                         << input_parameters.min_instances[mi] << ","
-                         << input_parameters.min_features[mf] << ","
-                         << input_parameters.alpha[ma];
-
-                  double meanTime = mean (learn_time_accum[nc]);
-                  output << "," << meanTime << "," << stdev (learn_time_accum[nc], meanTime);
-                  meanTime = mean (eval_time_accum[nc]);
-                  output << "," << meanTime << "," << stdev (eval_time_accum[nc], meanTime);
-
-                  double meanTrainLL = mean (train_ll_accum[nc]);
-                  output << "," << meanTrainLL << "," <<
-                    stdev (train_ll_accum[nc], meanTrainLL);
-                  double meanValidLL = mean (valid_ll_accum[nc]);
-                  output << "," << meanValidLL << "," <<
-                    stdev (valid_ll_accum[nc], meanValidLL);
-                  double meanTestLL = mean (test_ll_accum[nc]);
-                  output << "," << meanTestLL << "," <<
-                    stdev (test_ll_accum[nc], meanTestLL);
-                  output << std::endl;
-                }
 
               std::cout << std::endl;
             }
