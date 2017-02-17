@@ -994,6 +994,66 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   std::vector < std::shared_ptr < or_node > >or_nodes;
   std::vector < double >weights;
 
+  // data partitioning among the nodes
+  std::vector<std::vector<int>> partition_left(split_feature.size ());
+  std::vector<std::vector<int>> partition_right(split_feature.size ());
+  std::uniform_int_distribution<int> int_distribution(0,split_feature.size ()-1);
+
+  // making bootstraps
+
+  std::uniform_int_distribution<int> int_distribution_bstr(0,n->_row_idx.size ()-1);
+  for (unsigned int j = 0; j < split_feature.size (); j++)
+    {
+      for (unsigned int k = 0; k < n->_row_idx.size (); k++)
+        {
+          unsigned id = int_distribution_bstr(random_generator);
+          if (X.data[n->_row_idx[id]][split_feature[j]])
+            partition_right[j].push_back(n->_row_idx[id]);
+          else
+            partition_left[j].push_back(n->_row_idx[id]);
+        }
+    }
+
+
+  /*
+  for (unsigned int j = 0; j < n->_row_idx.size (); j++)
+    {
+      unsigned comp = int_distribution(random_generator);
+      for (unsigned cc=0; cc<split_feature.size (); cc++)
+        {
+          if (cc!=comp && X.data[n->_row_idx[j]][split_feature[cc]])
+            {
+              partition_right[cc].push_back(n->_row_idx[j]);
+            }
+          else
+            {
+              partition_left[cc].push_back(n->_row_idx[j]);
+            }
+        }
+    }
+  */
+  /*
+  for (unsigned int j = 0; j < n->_row_idx.size (); j++)
+    {
+      unsigned comp = int_distribution(random_generator);
+      if (X.data[n->_row_idx[j]][split_feature[comp]])
+        {
+          partition_right[comp].push_back(n->_row_idx[j]);
+        }
+      else
+        {
+          partition_left[comp].push_back(n->_row_idx[j]);
+        }
+    }
+  */
+  for (unsigned int j = 0; j < split_feature.size (); j++)
+    {
+      if (partition_left[j].size()>0)
+        best_left_data_row_index[j] = partition_left[j];
+      if (partition_right[j].size()>0)
+        best_right_data_row_index[j] = partition_right[j];
+     }
+
   for (unsigned int k = 0; k < split_feature.size (); k++)
     {
 
@@ -1026,6 +1086,8 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
       left_tree_node->_depth = n->_depth + 1;
       right_tree_node->_depth = n->_depth + 1;
 
+      //        weights.push_back ((double) (best_left_data_row_index[k].size () +
+      //                                         best_right_data_row_index[k].size ()) / n->_row_idx.size ());
       weights.push_back ((double) 1 / split_feature.size ());
       or_nodes.push_back (std::make_shared < or_node >
                           (or_node
