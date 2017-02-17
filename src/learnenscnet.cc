@@ -174,118 +174,94 @@ main (int argc, char **argv)
               std::cout.flush ();
 
 
-              int max_iterations = 1;
-
-              if (input_parameters.model == "xcnet"
-                  || input_parameters.model == "optionxcnet")
-                max_iterations = 10;
-
-              max_iterations = 1;
-
               double learn_time = 0;
               double eval_time = 0;
               double train_ll;
               double valid_ll;
               double test_ll;
 
-              for (int iter = 0; iter < max_iterations; iter++)
+              std::shared_ptr < ensemble > C;
+
+              if (input_parameters.model == "cnet")
+                C = std::make_shared < enscnet < cnet >>(input_parameters.max_components);
+              if (input_parameters.model == "xcnet")
+                C = std::make_shared < enscnet < xcnet > >(input_parameters.max_components);
+              if (input_parameters.model == "optioncnet")
+                C = std::make_shared < enscnet < optioncnet > >(input_parameters.max_components);
+              if (input_parameters.model == "optionxcnet")
+                C = std::make_shared < enscnet < optionxcnet > >(input_parameters.max_components);
+
+              auto t1 = std::chrono::high_resolution_clock::now ();
+              C->fit (train_data, pars);
+              auto t2 = std::chrono::high_resolution_clock::now ();
+
+              std::vector < std::vector < double >>train_lls;
+              std::vector < std::vector < double >>valid_lls;
+              std::vector < std::vector < double >>test_lls;
+
+              learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds >
+                (t2 - t1).count () / 1000;
+ 
+              std::vector<double> global_train_lls;
+              global_train_lls.resize (train_data.shape[0], 0.0);
+              std::vector<double> global_valid_lls;
+              global_valid_lls.resize (valid_data.shape[0], 0.0);
+              std::vector<double> global_test_lls;
+              global_test_lls.resize (test_data.shape[0], 0.0);
+
+              for (unsigned nc = 0; nc < input_parameters.max_components; nc++)
                 {
-                  std::shared_ptr < ensemble > C;
 
-                  std::cout << "\n    iter:" << iter << " ";
-
-                  if (input_parameters.model == "cnet")
-                    C = std::make_shared < enscnet < cnet >>(input_parameters.max_components);
-                  if (input_parameters.model == "xcnet")
-                    C = std::make_shared < enscnet < xcnet > >(input_parameters.max_components);
-                  if (input_parameters.model == "optioncnet")
-                    C = std::make_shared < enscnet < optioncnet > >(input_parameters.max_components);
-                  if (input_parameters.model == "optionxcnet")
-                    C = std::make_shared < enscnet < optionxcnet > >(input_parameters.max_components);
-
-                  auto t1 = std::chrono::high_resolution_clock::now ();
-                  C->fit (train_data, pars);
-                  auto t2 = std::chrono::high_resolution_clock::now ();
-
-                  std::vector < std::vector < double >>train_lls;
-                  std::vector < std::vector < double >>valid_lls;
-                  std::vector < std::vector < double >>test_lls;
-
-                  learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds >
-                    (t2 - t1).count () / 1000;
- 
-                  /* no serialization 
-                  for (unsigned mdls=0; mdls<input_parameters.max_components; mdls++)
+                  auto te1 = std::chrono::high_resolution_clock::now ();
+                  std::vector<double> c_ll = C->eval(train_data,nc);
+                  double train_local_ll = 0;
+                  for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
                     {
-                      if ((mdls % 10 == 0) | mdls == input_parameters.max_components -1)
-                        {
-                          serialize(train_lls[mdls], output_dir_name + "trainll_" + std::to_string(mdls));
-                          serialize(valid_lls[mdls], output_dir_name + "validll_" + std::to_string(mdls));
-                          serialize(test_lls[mdls], output_dir_name + "testll_" + std::to_string(mdls));
-                        }
+                      global_train_lls[inst] += exp(c_ll[inst]);
+                      train_local_ll += log(global_train_lls[inst] / (nc + 1));
                     }
-                  */
+                  train_local_ll /= train_data.shape[0];
+                  auto te2 = std::chrono::high_resolution_clock::now ();
+                  eval_time += (double) std::chrono::duration_cast < std::chrono::milliseconds >
+                    (te2 - te1).count () / 1000;
 
-                  std::vector<double> global_train_lls;
-                  global_train_lls.resize (train_data.shape[0], 0.0);
-                  std::vector<double> global_valid_lls;
-                  global_valid_lls.resize (valid_data.shape[0], 0.0);
-                  std::vector<double> global_test_lls;
-                  global_test_lls.resize (test_data.shape[0], 0.0);
-
-                  for (unsigned nc = 0; nc < input_parameters.max_components; nc++)
+                  c_ll = C->eval(valid_data,nc);
+                  double valid_local_ll = 0;
+                  for (unsigned inst = 0; inst<valid_data.shape[0]; inst++)
                     {
+                      global_valid_lls[inst] += exp(c_ll[inst]);
+                      valid_local_ll += log(global_valid_lls[inst] / (nc + 1));
+                    }
+                  valid_local_ll /= valid_data.shape[0];
 
-                      auto te1 = std::chrono::high_resolution_clock::now ();
-                      std::vector<double> c_ll = C->eval(train_data,nc);
-                      double train_local_ll = 0;
-                      for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
-                        {
-                          global_train_lls[inst] += exp(c_ll[inst]);
-                          train_local_ll += log(global_train_lls[inst] / (nc + 1));
-                        }
-                      train_local_ll /= train_data.shape[0];
-                      auto te2 = std::chrono::high_resolution_clock::now ();
-                      eval_time += (double) std::chrono::duration_cast < std::chrono::milliseconds >
-                        (te2 - te1).count () / 1000;
+                  c_ll = C->eval(test_data,nc);
+                  double test_local_ll = 0;
+                  for (unsigned inst = 0; inst<test_data.shape[0]; inst++)
+                    {
+                      global_test_lls[inst] += exp(c_ll[inst]);
+                      test_local_ll += log(global_test_lls[inst] / (nc + 1));
+                    }
+                  test_local_ll /= test_data.shape[0];
 
-                      c_ll = C->eval(valid_data,nc);
-                      double valid_local_ll = 0;
-                      for (unsigned inst = 0; inst<valid_data.shape[0]; inst++)
-                        {
-                          global_valid_lls[inst] += exp(c_ll[inst]);
-                          valid_local_ll += log(global_valid_lls[inst] / (nc + 1));
-                        }
-                      valid_local_ll /= valid_data.shape[0];
+                  output << nc + 1 << ","
+                         << input_parameters.min_instances[mi] << ","
+                         << input_parameters.min_features[mf] << ","
+                         << input_parameters.alpha[ma];
 
-                      c_ll = C->eval(test_data,nc);
-                      double test_local_ll = 0;
-                      for (unsigned inst = 0; inst<test_data.shape[0]; inst++)
-                        {
-                          global_test_lls[inst] += exp(c_ll[inst]);
-                          test_local_ll += log(global_test_lls[inst] / (nc + 1));
-                        }
-                      test_local_ll /= test_data.shape[0];
+                  output << "," << learn_time << "," << eval_time;
+                  output << "," << train_local_ll;
+                  output << "," << valid_local_ll;
+                  output << "," << test_local_ll;
+                  output << std::endl;
 
-                      std::cout << "ll: " << train_local_ll << " " << test_local_ll << std::endl;
-
-                      output << nc + 1 << ","
-                             << input_parameters.min_instances[mi] << ","
-                             << input_parameters.min_features[mf] << ","
-                             << input_parameters.alpha[ma];
-
-                      output << "," << learn_time << "," << eval_time;
-                      output << "," << train_local_ll << ",";
-                      output << "," << valid_local_ll << ",";
-                      output << "," << test_local_ll;
-                      output << std::endl;
- 
-
-                   }
-
+                  if (nc == input_parameters.max_components-1)
+                    {
+                      std::cout << ", learn time: " << learn_time << ", eval time: " << eval_time;
+                      std::cout << ", train ll: " << train_local_ll;
+                      std::cout << ", valid ll: " << valid_local_ll;
+                      std::cout << ", test ll: " << test_local_ll;
+                    }
                 }
-
-
               std::cout << std::endl;
             }
         }
