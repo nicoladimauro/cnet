@@ -195,9 +195,9 @@ main (int argc, char **argv)
               C->fit (train_data, pars);
               auto t2 = std::chrono::high_resolution_clock::now ();
 
-              std::vector < std::vector < double >>train_lls;
-              std::vector < std::vector < double >>valid_lls;
-              std::vector < std::vector < double >>test_lls;
+              std::vector < double > max_train_ll;
+              std::vector < double > max_valid_ll;
+              std::vector < double > max_test_ll;
 
               learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds >
                 (t2 - t1).count () / 1000;
@@ -214,11 +214,14 @@ main (int argc, char **argv)
 
                   auto te1 = std::chrono::high_resolution_clock::now ();
                   std::vector<double> c_ll = C->eval(train_data,nc);
+                  // setting the max for the log sum exp trick to the first component value
+                  if (nc==0)
+                    max_train_ll = c_ll;
                   double train_local_ll = 0;
                   for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
                     {
-                      global_train_lls[inst] += exp(c_ll[inst]);
-                      train_local_ll += log(global_train_lls[inst] / (nc + 1));
+                      global_train_lls[inst] += exp(c_ll[inst]-max_train_ll[inst]);
+                      train_local_ll += max_train_ll[inst] + log(global_train_lls[inst] / (nc + 1));
                     }
                   train_local_ll /= train_data.shape[0];
                   auto te2 = std::chrono::high_resolution_clock::now ();
@@ -226,20 +229,24 @@ main (int argc, char **argv)
                     (te2 - te1).count () / 1000;
 
                   c_ll = C->eval(valid_data,nc);
+                  if (nc==0)
+                    max_valid_ll = c_ll;
                   double valid_local_ll = 0;
                   for (unsigned inst = 0; inst<valid_data.shape[0]; inst++)
                     {
-                      global_valid_lls[inst] += exp(c_ll[inst]);
-                      valid_local_ll += log(global_valid_lls[inst] / (nc + 1));
+                      global_valid_lls[inst] += exp(c_ll[inst]-max_valid_ll[inst]);
+                      valid_local_ll += max_valid_ll[inst] + log(global_valid_lls[inst] / (nc + 1));
                     }
                   valid_local_ll /= valid_data.shape[0];
 
                   c_ll = C->eval(test_data,nc);
+                  if (nc==0)
+                    max_test_ll = c_ll;
                   double test_local_ll = 0;
                   for (unsigned inst = 0; inst<test_data.shape[0]; inst++)
                     {
-                      global_test_lls[inst] += exp(c_ll[inst]);
-                      test_local_ll += log(global_test_lls[inst] / (nc + 1));
+                      global_test_lls[inst] += exp(c_ll[inst]-max_test_ll[inst]);
+                      test_local_ll += max_test_ll[inst] + log(global_test_lls[inst] / (nc + 1));
                     }
                   test_local_ll /= test_data.shape[0];
 
