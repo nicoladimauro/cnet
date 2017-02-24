@@ -201,7 +201,7 @@ main (int argc, char **argv)
 
               learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds >
                 (t2 - t1).count () / 1000;
- 
+
               std::vector<double> global_train_lls;
               global_train_lls.resize (train_data.shape[0], 0.0);
               std::vector<double> global_valid_lls;
@@ -221,7 +221,7 @@ main (int argc, char **argv)
                   for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
                     {
                       global_train_lls[inst] += exp(c_ll[inst]-max_train_ll[inst]);
-                      train_local_ll += max_train_ll[inst] + log((double) nc+1) + log(global_train_lls[inst] / (nc + 1));
+                      train_local_ll += max_train_ll[inst] - log((double) nc+1) + log(global_train_lls[inst]);
                     }
                   train_local_ll /= train_data.shape[0];
                   auto te2 = std::chrono::high_resolution_clock::now ();
@@ -235,7 +235,7 @@ main (int argc, char **argv)
                   for (unsigned inst = 0; inst<valid_data.shape[0]; inst++)
                     {
                       global_valid_lls[inst] += exp(c_ll[inst]-max_valid_ll[inst]);
-                      valid_local_ll += max_valid_ll[inst] + log(global_valid_lls[inst] / (nc + 1));
+                      valid_local_ll += max_valid_ll[inst] - log((double) nc+1) + log(global_valid_lls[inst]);
                     }
                   valid_local_ll /= valid_data.shape[0];
 
@@ -246,7 +246,7 @@ main (int argc, char **argv)
                   for (unsigned inst = 0; inst<test_data.shape[0]; inst++)
                     {
                       global_test_lls[inst] += exp(c_ll[inst]-max_test_ll[inst]);
-                      test_local_ll += max_test_ll[inst] + log(global_test_lls[inst] / (nc + 1));
+                      test_local_ll += max_test_ll[inst] - log((double) nc+1) + log(global_test_lls[inst]);
                     }
                   test_local_ll /= test_data.shape[0];
 
