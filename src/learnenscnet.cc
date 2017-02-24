@@ -221,7 +221,7 @@ main (int argc, char **argv)
                   for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
                     {
                       global_train_lls[inst] += exp(c_ll[inst]-max_train_ll[inst]);
-                      train_local_ll += max_train_ll[inst] + log(nc+1) + log(global_train_lls[inst] / (nc + 1));
+                      train_local_ll += max_train_ll[inst] + log((double) 1/(nc+1)) + log(global_train_lls[inst] / (nc + 1));
                     }
                   train_local_ll /= train_data.shape[0];
                   auto te2 = std::chrono::high_resolution_clock::now ();
