@@ -108,8 +108,6 @@ main (int argc, char **argv)
 
   std::cout << input_parameters;
 
-  random_generator.seed (input_parameters.seed);
-
 
   // loading data
 
@@ -140,8 +138,6 @@ main (int argc, char **argv)
 
   // grid search
 
-  random_generator.seed (input_parameters.seed);
-
   std::cout << "Starting grid search " << std::endl;
   std::cout.flush ();
 
@@ -157,6 +153,8 @@ main (int argc, char **argv)
         {
           for (unsigned int ma = 0; ma < input_parameters.alpha.size (); ma++)
             {
+
+              random_generator.seed (input_parameters.seed);
 
               pars.problem_name = input_parameters.problem_name;
               pars.min_instances = input_parameters.min_instances[mi];
