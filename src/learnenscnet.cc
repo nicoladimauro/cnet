@@ -174,20 +174,17 @@ main (int argc, char **argv)
 
               double learn_time = 0;
               double eval_time = 0;
-              double train_ll;
-              double valid_ll;
-              double test_ll;
 
               std::shared_ptr < ensemble > C;
 
               if (input_parameters.model == "cnet")
-                C = std::make_shared < enscnet < cnet >>(input_parameters.max_components);
+                C = std::make_shared < enscnet < cnet<cltree>>>(input_parameters.max_components, true);
               if (input_parameters.model == "xcnet")
-                C = std::make_shared < enscnet < xcnet > >(input_parameters.max_components);
+                C = std::make_shared < enscnet < xcnet<cltree>> >(input_parameters.max_components, false);
               if (input_parameters.model == "optioncnet")
-                C = std::make_shared < enscnet < optioncnet > >(input_parameters.max_components);
+                C = std::make_shared < enscnet < optioncnet<cltree>> >(input_parameters.max_components, true);
               if (input_parameters.model == "optionxcnet")
-                C = std::make_shared < enscnet < optionxcnet > >(input_parameters.max_components);
+                C = std::make_shared < enscnet < optionxcnet<cltree>> >(input_parameters.max_components, false);
 
               auto t1 = std::chrono::high_resolution_clock::now ();
               C->fit (train_data, pars);

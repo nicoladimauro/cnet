@@ -41,88 +41,65 @@ class ensemble
   virtual bool is_pdf (int) = 0;
 };
 
-template < class M > class enscnet:public ensemble
+template < class M>
+class enscnet : public ensemble
 {
  private:
   std::vector < std::shared_ptr < M > >_models;
   std::vector < double >_weights;
   unsigned int _n_models;
+  bool _bootstraps;
  public:
   bool is_pdf (int);
-  enscnet (int);
+  enscnet (int, bool bootstraps=true);
   void fit (dataset &, paramsexp &);
   std::vector < std::vector < double >>eval (dataset &);
   std::vector < double >eval (dataset &, int);
 };
 
-template < class M > enscnet < M >::enscnet (int n_models)
+template < class M>
+enscnet < M>::enscnet (int n_models, bool bootstraps)
 {
   _n_models = n_models;
+  _bootstraps = bootstraps;
   for (unsigned int i = 0; i < n_models; i++)
     {
       _models.push_back (std::make_shared < M > (M ()));
     }
 }
 
-template < class M >
-void enscnet < M >::fit (dataset & X, paramsexp & input_parameters)
+template < class M>
+  void enscnet < M>::fit (dataset & X, paramsexp & input_parameters)
 {
-  for (unsigned int i = 0; i < _n_models; i++)
-    {
+  if (!_bootstraps)
+    for (unsigned int i = 0; i < _n_models; i++)
       _models[i]->fit (X, input_parameters);
-    }
-}
-
-template <>
-void enscnet < cnet >::fit (dataset & X, paramsexp & input_parameters)
-{
-  for (unsigned int i = 0; i < _n_models; i++)
+  else
     {
-      dataset bootstrap;
-
-      bootstrap.shape[0] = X.shape[0];
-      bootstrap.shape[1] = X.shape[1];
-      bootstrap.sparsity = X.sparsity;
-
-      for (unsigned int k = 0; k < X.shape[0]; k++)
+      for (unsigned int i = 0; i < _n_models; i++)
         {
-          std::uniform_int_distribution < int >distribution (0,
-                                                             X.shape[0] - 1);
-          int selected = distribution (random_generator);
+          dataset bootstrap;
 
-          bootstrap.data.push_back (X.data[selected]);
-          bootstrap.lil_data.push_back (X.lil_data[selected]);
+          bootstrap.shape[0] = X.shape[0];
+          bootstrap.shape[1] = X.shape[1];
+          bootstrap.sparsity = X.sparsity;
+
+          for (unsigned int k = 0; k < X.shape[0]; k++)
+            {
+              std::uniform_int_distribution < int >distribution (0, X.shape[0] - 1);
+              int selected = distribution (random_generator);
+
+              bootstrap.data.push_back (X.data[selected]);
+              bootstrap.lil_data.push_back (X.lil_data[selected]);
+            }
+          _models[i]->fit (bootstrap, input_parameters);
         }
-      _models[i]->fit (bootstrap, input_parameters);
     }
 }
 
-template <>
-void enscnet < optioncnet >::fit (dataset & X, paramsexp & input_parameters)
-{
-  for (unsigned int i = 0; i < _n_models; i++)
-    {
-      dataset bootstrap;
 
-      bootstrap.shape[0] = X.shape[0];
-      bootstrap.shape[1] = X.shape[1];
-      bootstrap.sparsity = X.sparsity;
-
-      for (unsigned int k = 0; k < X.shape[0]; k++)
-        {
-          std::uniform_int_distribution < int >distribution (0,
-                                                             X.shape[0] - 1);
-          int selected = distribution (random_generator);
-
-          bootstrap.data.push_back (X.data[selected]);
-          bootstrap.lil_data.push_back (X.lil_data[selected]);
-        }
-      _models[i]->fit (bootstrap, input_parameters);
-    }
-}
-
-template < class M > std::vector < std::vector < double >>
-enscnet <M >::eval (dataset & X)
+template < class M>
+std::vector < std::vector < double >> enscnet <M>::eval (dataset & X)
 {
   std::vector < double > lls;
   std::vector < std::vector < double >> models_ll;
@@ -134,13 +111,14 @@ enscnet <M >::eval (dataset & X)
   return models_ll;
 }
 
-template < class M > std::vector < double >
-enscnet <M >::eval (dataset & X, int component)
+template < class M>
+std::vector < double > enscnet <M>::eval (dataset & X, int component)
 {
   return _models[component]->eval (X);
 }
 
-template < class M > bool enscnet < M >::is_pdf (int nc)
+template < class M>
+bool enscnet < M>::is_pdf (int nc)
 {
   int
     l = 16;

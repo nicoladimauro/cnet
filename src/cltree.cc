@@ -101,7 +101,6 @@ cltree::eval (dataset & X, std::vector < int >&rows_idx,
               std::vector < int >&scope)
 {
   unsigned int i, r;
-  int p;
 
   SOFT_ASSERT (_fitted, "error: cltree is not fitted!");
 
