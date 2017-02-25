@@ -27,9 +27,7 @@ node::_id_counter = 0;
 
 node::node (node_type type)
 {
-  SOFT_ASSERT (type == LEAF_NODE || type == OR_NODE
-               || type == OPTION_NODE, "error: unknown node type!") _type =
-    type;
+  SOFT_ASSERT (type == LEAF_NODE || type == OR_NODE || type == OPTION_NODE, "error: unknown node type!") _type = type;
   _id = _id_counter++;
 }
 
@@ -45,13 +43,12 @@ node::~node ()
 }
 
 int
-node::get_id () const
+node::get_id () const const const
 {
   return _id;
 }
 
-node_type
-node::get_type () const
+node_type node::get_type () constconst
 {
   return _type;
 }

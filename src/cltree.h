@@ -43,18 +43,14 @@ class cltree
   int *_tree;
   bool _fitted;
   void compute_log_probs (dataset &, double);
-  void compute_log_probs (dataset & X, std::vector < int >&,
-                          std::vector < int >&, int, double);
-public:
-    cltree ();
-    std::vector < double >eval (dataset &);
-    std::vector < double >eval (dataset &, std::vector < int >&,
-                                std::vector < int >&);
+  void compute_log_probs (dataset & X, std::vector < int >&, std::vector < int >&, int, double);
+ public:
+  cltree ();
+  std::vector < double >eval (dataset &);
+  std::vector < double >eval (dataset &, std::vector < int >&, std::vector < int >&);
   void fit (dataset &, double);
-  void fit (dataset &, int, std::vector < int >&, std::vector < int >&, int,
-            double);
-   ~cltree ();
+  void fit (dataset &, int, std::vector < int >&, std::vector < int >&, int, double);
+  ~cltree ();
 };
-
 
 #endif

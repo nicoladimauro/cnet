@@ -37,8 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "cmdline.h"
 #include "utils.h"
 
-std::mt19937
-random_generator;
+std::mt19937 random_generator;
 
 int
 verbose;
@@ -56,8 +55,7 @@ log_outdir (std::string problem_name, std::string out_path)
   strftime (buffer, 80, "%d-%m-%Y-%I-%M-%S", timeinfo);
 
 
-  return ("./" + out_path + "/" + problem_name + "_" + std::string (buffer) +
-          "/");
+  return ("./" + out_path + "/" + problem_name + "_" + std::string (buffer) + "/");
 }
 
 int
@@ -95,8 +93,7 @@ main (int argc, char **argv)
 
   if (args_info.option_length_given)
     for (unsigned int i = 0; i < args_info.option_length_given; i++)
-      input_parameters.option_length.push_back (args_info.
-                                                option_length_arg[i]);
+      input_parameters.option_length.push_back (args_info.option_length_arg[i]);
   else
     input_parameters.option_length.push_back (args_info.option_length_arg[0]);
 
@@ -112,13 +109,10 @@ main (int argc, char **argv)
   // loading data
 
   dataset train_data ("./data/" + input_parameters.problem_name + ".ts.data");
-  dataset valid_data ("./data/" + input_parameters.problem_name +
-                      ".valid.data");
-  dataset test_data ("./data/" + input_parameters.problem_name +
-                     ".test.data");
+  dataset valid_data ("./data/" + input_parameters.problem_name + ".valid.data");
+  dataset test_data ("./data/" + input_parameters.problem_name + ".test.data");
 
-  std::string output_dir_name =
-    log_outdir (input_parameters.problem_name, input_parameters.out_path);
+  std::string output_dir_name = log_outdir (input_parameters.problem_name, input_parameters.out_path);
   std::string system_command = "mkdir -p " + output_dir_name;
   const int dir_err = std::system (system_command.c_str ());
   if (-1 == dir_err)
@@ -130,9 +124,8 @@ main (int argc, char **argv)
   std::ofstream output;
   output.open (output_dir_name + "exp.log");
 
-  std::cout << "Loaded " << train_data.
-    shape[0] << " instances on " << train_data.
-    shape[1] << " variables, sparsity: " << train_data.sparsity << std::endl;
+  std::cout << "Loaded " << train_data.shape[0] << " instances on " << train_data.shape[1] << " variables, sparsity: "
+            << train_data.sparsity << std::endl;
 
   paramsexp pars;
 
@@ -167,8 +160,7 @@ main (int argc, char **argv)
               pars.max_components = input_parameters.max_components;
 
               std::cout << "  min_inst=" << pars.min_instances <<
-                ", min_feat=" << pars.min_features <<
-                ", alpha=" << pars.alpha;
+                ", min_feat=" << pars.min_features << ", alpha=" << pars.alpha;
               std::cout.flush ();
 
 
@@ -178,77 +170,75 @@ main (int argc, char **argv)
               std::shared_ptr < ensemble > C;
 
               if (input_parameters.model == "cnet")
-                C = std::make_shared < enscnet < cnet<cltree>>>(input_parameters.max_components, true);
+                C = std::make_shared < enscnet < cnet < cltree >>> (input_parameters.max_components, true);
               if (input_parameters.model == "xcnet")
-                C = std::make_shared < enscnet < xcnet<cltree>> >(input_parameters.max_components, false);
+                C = std::make_shared < enscnet < xcnet < cltree >> >(input_parameters.max_components, false);
               if (input_parameters.model == "optioncnet")
-                C = std::make_shared < enscnet < optioncnet<cltree>> >(input_parameters.max_components, true);
+                C = std::make_shared < enscnet < optioncnet < cltree >> >(input_parameters.max_components, true);
               if (input_parameters.model == "optionxcnet")
-                C = std::make_shared < enscnet < optionxcnet<cltree>> >(input_parameters.max_components, false);
+                C = std::make_shared < enscnet < optionxcnet < cltree >> >(input_parameters.max_components, false);
 
               auto t1 = std::chrono::high_resolution_clock::now ();
               C->fit (train_data, pars);
               auto t2 = std::chrono::high_resolution_clock::now ();
 
-              std::vector < double > max_train_ll;
-              std::vector < double > max_valid_ll;
-              std::vector < double > max_test_ll;
+              std::vector < double >max_train_ll;
+              std::vector < double >max_valid_ll;
+              std::vector < double >max_test_ll;
 
-              learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds >
-                (t2 - t1).count () / 1000;
+              learn_time = (double) std::chrono::duration_cast < std::chrono::milliseconds > (t2 - t1).count () / 1000;
 
-              std::vector<double> global_train_lls;
+              std::vector < double >global_train_lls;
               global_train_lls.resize (train_data.shape[0], 0.0);
-              std::vector<double> global_valid_lls;
+              std::vector < double >global_valid_lls;
               global_valid_lls.resize (valid_data.shape[0], 0.0);
-              std::vector<double> global_test_lls;
+              std::vector < double >global_test_lls;
               global_test_lls.resize (test_data.shape[0], 0.0);
 
               for (unsigned nc = 0; nc < input_parameters.max_components; nc++)
                 {
 
                   auto te1 = std::chrono::high_resolution_clock::now ();
-                  std::vector<double> c_ll = C->eval(train_data,nc);
+                  std::vector < double >c_ll = C->eval (train_data, nc);
                   // setting the max for the log sum exp trick to the first component value
-                  if (nc==0)
+                  if (nc == 0)
                     max_train_ll = c_ll;
                   double train_local_ll = 0;
-                  for (unsigned inst = 0; inst<train_data.shape[0]; inst++)
+                  for (unsigned inst = 0; inst < train_data.shape[0]; inst++)
                     {
-                      global_train_lls[inst] += exp(c_ll[inst]-max_train_ll[inst]);
-                      train_local_ll += max_train_ll[inst] - log((double) nc+1) + log(global_train_lls[inst]);
+                      global_train_lls[inst] += exp (c_ll[inst] - max_train_ll[inst]);
+                      train_local_ll += max_train_ll[inst] - log ((double) nc + 1) + log (global_train_lls[inst]);
                     }
                   train_local_ll /= train_data.shape[0];
                   auto te2 = std::chrono::high_resolution_clock::now ();
                   eval_time += (double) std::chrono::duration_cast < std::chrono::milliseconds >
                     (te2 - te1).count () / 1000;
 
-                  c_ll = C->eval(valid_data,nc);
-                  if (nc==0)
+                  c_ll = C->eval (valid_data, nc);
+                  if (nc == 0)
                     max_valid_ll = c_ll;
                   double valid_local_ll = 0;
-                  for (unsigned inst = 0; inst<valid_data.shape[0]; inst++)
+                  for (unsigned inst = 0; inst < valid_data.shape[0]; inst++)
                     {
-                      global_valid_lls[inst] += exp(c_ll[inst]-max_valid_ll[inst]);
-                      valid_local_ll += max_valid_ll[inst] - log((double) nc+1) + log(global_valid_lls[inst]);
+                      global_valid_lls[inst] += exp (c_ll[inst] - max_valid_ll[inst]);
+                      valid_local_ll += max_valid_ll[inst] - log ((double) nc + 1) + log (global_valid_lls[inst]);
                     }
                   valid_local_ll /= valid_data.shape[0];
 
-                  c_ll = C->eval(test_data,nc);
-                  if (nc==0)
+                  c_ll = C->eval (test_data, nc);
+                  if (nc == 0)
                     max_test_ll = c_ll;
                   double test_local_ll = 0;
-                  for (unsigned inst = 0; inst<test_data.shape[0]; inst++)
+                  for (unsigned inst = 0; inst < test_data.shape[0]; inst++)
                     {
-                      global_test_lls[inst] += exp(c_ll[inst]-max_test_ll[inst]);
-                      test_local_ll += max_test_ll[inst] - log((double) nc+1) + log(global_test_lls[inst]);
+                      global_test_lls[inst] += exp (c_ll[inst] - max_test_ll[inst]);
+                      test_local_ll += max_test_ll[inst] - log ((double) nc + 1) + log (global_test_lls[inst]);
                     }
                   test_local_ll /= test_data.shape[0];
 
                   output << nc + 1 << ","
                          << input_parameters.min_instances[mi] << ","
-                         << input_parameters.min_features[mf] << ","
-                         << input_parameters.alpha[ma];
+                         << input_parameters.min_features[mf] << "," << input_parameters.alpha[ma];
 
                   output << "," << learn_time << "," << eval_time;
                   output << "," << train_local_ll;
@@ -256,7 +246,7 @@ main (int argc, char **argv)
                   output << "," << test_local_ll;
                   output << std::endl;
 
-                  if (nc == input_parameters.max_components-1)
+                  if (nc == input_parameters.max_components - 1)
                     {
                       std::cout << ", learn time: " << learn_time << ", eval time: " << eval_time;
                       std::cout << ", train ll: " << train_local_ll;

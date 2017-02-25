@@ -72,8 +72,7 @@ cnet::is_pdf ()
   for (auto & v:lls)
     sum += exp (v);
 
-  std::cout << "Is pdf: " << " " << X.shape[0] << " " <<
-    result.size () << " " << std::setprecision (10) << sum;
+  std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size () << " " << std::setprecision (10) << sum;
 
   return (sum == 1.0);
 }
@@ -99,19 +98,14 @@ cnet::compute_stats ()
       else if (current_node->get_type () == OR_NODE)
         {
           _n_or_nodes++;
-          nodes_to_process.push (std::static_pointer_cast < or_node >
-                                 (current_node)->get_left_child ());
-          nodes_to_process.push (std::static_pointer_cast < or_node >
-                                 (current_node)->get_right_child ());
+          nodes_to_process.push (std::static_pointer_cast < or_node > (current_node)->get_left_child ());
+          nodes_to_process.push (std::static_pointer_cast < or_node > (current_node)->get_right_child ());
         }
       else if (current_node->get_type () == OPTION_NODE)
         {
           _n_option_nodes++;
-          for (unsigned int i = 0;
-               i < std::static_pointer_cast < option_node >
-                 (current_node)->n_children (); i++)
-            nodes_to_process.push (std::static_pointer_cast < option_node >
-                                   (current_node)->get_child (i));
+          for (unsigned int i = 0; i < std::static_pointer_cast < option_node > (current_node)->n_children (); i++)
+            nodes_to_process.push (std::static_pointer_cast < option_node > (current_node)->get_child (i));
         }
     }
   _mean_depth = m_depth / _n_tree_nodes;
@@ -122,8 +116,7 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
                     double node_ll, double &best_left_ll,
                     double &best_right_ll,
                     std::shared_ptr < tree_node > &left_tree_node,
-                    std::shared_ptr < tree_node > &right_tree_node,
-                    double alpha)
+                    std::shared_ptr < tree_node > &right_tree_node, double alpha)
 {
 
   double best_ll = node_ll;
@@ -143,10 +136,8 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
     {
       if (n->_scope[i])
         {
-          std::shared_ptr < cltree > left_clt =
-            std::make_shared < cltree > ();
-          std::shared_ptr < cltree > right_clt =
-            std::make_shared < cltree > ();
+          std::shared_ptr < cltree > left_clt = std::make_shared < cltree > ();
+          std::shared_ptr < cltree > right_clt = std::make_shared < cltree > ();
 
           int rows_left = 0;
           int rows_right = 0;
@@ -171,23 +162,17 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
               std::vector < int >scope = n->_scope;
               scope[i] = 0;
 
-              left_clt->fit (X, rows_left, left_data_row_index, scope,
-                             n->_scope_length - 1, alpha);
-              right_clt->fit (X, rows_right, right_data_row_index, scope,
-                              n->_scope_length - 1, alpha);
+              left_clt->fit (X, rows_left, left_data_row_index, scope, n->_scope_length - 1, alpha);
+              right_clt->fit (X, rows_right, right_data_row_index, scope, n->_scope_length - 1, alpha);
 
-              double left_ll =
-                mean (left_clt->eval (X, left_data_row_index, scope));
-              double right_ll =
-                mean (right_clt->eval (X, right_data_row_index, scope));
+              double left_ll = mean (left_clt->eval (X, left_data_row_index, scope));
+              double right_ll = mean (right_clt->eval (X, right_data_row_index, scope));
               double split_ll =
                 ((left_ll +
                   log ((double) rows_left / (rows_left + rows_right))) *
                  rows_left + (right_ll +
                               log ((double) rows_right /
-                                   (rows_left +
-                                    rows_right))) * rows_right) / (rows_left +
-                                                                   rows_right);
+                                   (rows_left + rows_right))) * rows_right) / (rows_left + rows_right);
 
               if (split_ll > best_ll)
                 {
@@ -209,22 +194,17 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
     {
       if (verbose)
         {
-          std::
-            cout << "Splitting on " << split_feature << " [#l: " <<
-            best_left_data_row_index.
-            size () << ", #r: " << best_right_data_row_index.
-            size () << "]" << std::endl;
+          std::cout << "Splitting on " << split_feature << " [#l: " <<
+            best_left_data_row_index.size () << ", #r: " << best_right_data_row_index.size () << "]" << std::endl;
           std::cout.flush ();
         }
 
       double left_w, right_w;
       left_w = (double) best_left_data_row_index.size () /
-        (best_left_data_row_index.size () +
-         best_right_data_row_index.size ());
+        (best_left_data_row_index.size () + best_right_data_row_index.size ());
       right_w =
         (double) best_right_data_row_index.size () /
-        (best_left_data_row_index.size () +
-         best_right_data_row_index.size ());
+        (best_left_data_row_index.size () + best_right_data_row_index.size ());
 
 
       left_tree_node = std::make_shared < tree_node > (best_left_clt);
@@ -244,47 +224,33 @@ cnet::make_or_node (dataset & X, std::shared_ptr < tree_node > n,
 
       if (n == _root)
         {
-          _root =
-            std::make_shared < or_node > (left_tree_node, right_tree_node,
-                                          left_w, right_w, split_feature);
+          _root = std::make_shared < or_node > (left_tree_node, right_tree_node, left_w, right_w, split_feature);
           left_tree_node->_parent = _root;
           right_tree_node->_parent = _root;
         }
       else
         {
-          if (std::static_pointer_cast < or_node >
-              (n->_parent.lock ())->get_left_child () == n)
+          if (std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child () == n)
             {
               std::static_pointer_cast < or_node >
                 (n->_parent.lock ())->set_left_child (std::make_shared < or_node >
                                                       (left_tree_node, right_tree_node,
                                                        left_w, right_w, split_feature));
 
-              left_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_left_child ();
-              right_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_left_child ();
-              std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
+              left_tree_node->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ();
+              right_tree_node->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ();
+              std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
             }
           else
             {
               std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->set_right_child (std::make_shared <or_node >
+                (n->_parent.lock ())->set_right_child (std::make_shared < or_node >
                                                        (left_tree_node, right_tree_node,
                                                         left_w, right_w, split_feature));
 
-              left_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_right_child ();
-              right_tree_node->_parent =
-                std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_right_child ();
-              std::static_pointer_cast < or_node >
-                (n->_parent.lock ())->get_right_child ()->_parent =
-                n->_parent;
+              left_tree_node->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ();
+              right_tree_node->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ();
+              std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
             }
         }
       return true;
@@ -324,8 +290,7 @@ cnet::fit (dataset & X, paramsexp & input_parameters)
     std::cout << "ll: " << node_training_ll[_root->get_id ()] << std::endl;
 
   std::queue < std::shared_ptr < tree_node > >nodes_to_process;
-  if (_root->_row_idx.size () > min_instances
-      && _root->_scope_length > min_features)
+  if (_root->_row_idx.size () > min_instances && _root->_scope_length > min_features)
     nodes_to_process.push (std::dynamic_pointer_cast < tree_node > (_root));
 
   while (!nodes_to_process.empty ())
@@ -335,11 +300,8 @@ cnet::fit (dataset & X, paramsexp & input_parameters)
 
       if (verbose)
         {
-          std::cout << "Node Id " << n->get_id () << ", # instances " << n->
-            _row_idx.size () << ", scope length " << n->
-            _scope_length << ", local ll " << node_training_ll[n->
-                                                               get_id ()] <<
-            std::endl;
+          std::cout << "Node Id " << n->get_id () << ", # instances " << n->_row_idx.size () << ", scope length " << n->
+            _scope_length << ", local ll " << node_training_ll[n->get_id ()] << std::endl;
           std::cout.flush ();
         }
 
@@ -352,11 +314,9 @@ cnet::fit (dataset & X, paramsexp & input_parameters)
         {
           node_training_ll[best_left_node->get_id ()] = best_left_ll;
           node_training_ll[best_right_node->get_id ()] = best_right_ll;
-          if (best_left_node->_scope_length > min_features
-              && best_left_node->_row_idx.size () > min_instances)
+          if (best_left_node->_scope_length > min_features && best_left_node->_row_idx.size () > min_instances)
             nodes_to_process.push (best_left_node);
-          if (best_right_node->_scope_length > min_features
-              && best_right_node->_row_idx.size () > min_instances)
+          if (best_right_node->_scope_length > min_features && best_right_node->_row_idx.size () > min_instances)
             nodes_to_process.push (best_right_node);
         }
       else
@@ -384,12 +344,12 @@ xcnet::make_or_node (dataset & X,
   for (unsigned int i = 0; i < n->_scope.size (); i++)
     if (n->_scope[i])
       candidate_splits.push_back (i);
-  shuffle (candidate_splits.begin(), candidate_splits.end(), random_generator);
+  shuffle (candidate_splits.begin (), candidate_splits.end (), random_generator);
 
-  while (candidate_splits.size())
+  while (candidate_splits.size ())
     {
-      int splitFeature = candidate_splits.back();
-      candidate_splits.pop_back();
+      int splitFeature = candidate_splits.back ();
+      candidate_splits.pop_back ();
 
       std::shared_ptr < cltree > left_clt (new cltree);
       std::shared_ptr < cltree > right_clt (new cltree);
@@ -416,9 +376,8 @@ xcnet::make_or_node (dataset & X,
 
           if (verbose)
             {
-              std::
-                cout << "Splitting on " << splitFeature << " [#l: " << rows_left
-                     << ", #r: " << rows_right << "]" << std::endl;
+              std::cout << "Splitting on " << splitFeature << " [#l: " << rows_left
+                        << ", #r: " << rows_right << "]" << std::endl;
               std::cout.flush ();
             }
 
@@ -433,8 +392,7 @@ xcnet::make_or_node (dataset & X,
           std::shared_ptr < cltree > right_clt (new cltree);
 
           std::shared_ptr < tree_node > left_tree_node (new tree_node (left_clt));
-          std::shared_ptr < tree_node >
-            right_tree_node (new tree_node (right_clt));
+          std::shared_ptr < tree_node > right_tree_node (new tree_node (right_clt));
           left_tree_node->_scope = children_scope;
           right_tree_node->_scope = children_scope;
           left_tree_node->_scope_length = n->_scope_length - 1;
@@ -451,34 +409,25 @@ xcnet::make_or_node (dataset & X,
           if (n == _root)
             {
               _root =
-                std::make_shared < or_node >
-                (or_node
-                 (left_tree_node, right_tree_node, left_w, right_w,
-                  splitFeature));
+                std::make_shared < or_node > (or_node (left_tree_node, right_tree_node, left_w, right_w, splitFeature));
               left_tree_node->_parent = _root;
               right_tree_node->_parent = _root;
             }
           else
             {
-              if (std::static_pointer_cast < or_node >
-                  (n->_parent.lock ())->get_left_child () == n)
+              if (std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child () == n)
                 {
                   std::static_pointer_cast < or_node >
                     (n->_parent.lock ())->set_left_child (std::make_shared <
                                                           or_node >
                                                           (or_node
                                                            (left_tree_node,
-                                                            right_tree_node,
-                                                            left_w, right_w,
-                                                            splitFeature)));
+                                                            right_tree_node, left_w, right_w, splitFeature)));
                   left_tree_node->_parent =
-                    std::static_pointer_cast < or_node >
-                    (n->_parent.lock ())->get_left_child ();
+                    std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ();
                   right_tree_node->_parent =
-                    std::static_pointer_cast < or_node >
-                    (n->_parent.lock ())->get_left_child ();
-                  std::static_pointer_cast < or_node >
-                    (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
+                    std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ();
+                  std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
                 }
               else
                 {
@@ -487,19 +436,13 @@ xcnet::make_or_node (dataset & X,
                                                            or_node >
                                                            (or_node
                                                             (left_tree_node,
-                                                             right_tree_node,
-                                                             left_w, right_w,
-                                                             splitFeature)));
+                                                             right_tree_node, left_w, right_w, splitFeature)));
 
                   left_tree_node->_parent =
-                    std::static_pointer_cast < or_node >
-                    (n->_parent.lock ())->get_right_child ();
+                    std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ();
                   right_tree_node->_parent =
-                    std::static_pointer_cast < or_node >
-                    (n->_parent.lock ())->get_right_child ();
-                  std::static_pointer_cast < or_node >
-                    (n->_parent.lock ())->get_right_child ()->_parent =
-                    n->_parent;
+                    std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ();
+                  std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
                 }
             }
           return true;
@@ -528,13 +471,10 @@ xcnet::fit (dataset & X, paramsexp & input_parameters)
   _root->_depth = 1;
 
   std::queue < std::shared_ptr < tree_node > >nodes_to_process;
-  if (_root->_row_idx.size () > min_instances
-      && _root->_scope_length > min_features)
+  if (_root->_row_idx.size () > min_instances && _root->_scope_length > min_features)
     nodes_to_process.push (std::dynamic_pointer_cast < tree_node > (_root));
   else
-    std::static_pointer_cast < tree_node > (_root)->fit (X,
-                                                         input_parameters.
-                                                         alpha);
+    std::static_pointer_cast < tree_node > (_root)->fit (X, input_parameters.alpha);
 
   std::shared_ptr < tree_node > n;
 
@@ -547,20 +487,17 @@ xcnet::fit (dataset & X, paramsexp & input_parameters)
 
       if (verbose)
         std::cout << "Node Id " << n->get_id () << ", # instances " <<
-          n->_row_idx.size () << ", scope length " << n->
-          _scope_length << std::endl;
+          n->_row_idx.size () << ", scope length " << n->_scope_length << std::endl;
 
       std::shared_ptr < tree_node > left_node, right_node;
       if (make_or_node (X, n, left_node, right_node, input_parameters.alpha))
         {
 
-          if (left_node->_scope_length > min_features
-              && left_node->_row_idx.size () > min_instances)
+          if (left_node->_scope_length > min_features && left_node->_row_idx.size () > min_instances)
             nodes_to_process.push (left_node);
           else
             left_node->fit (X, input_parameters.alpha);
-          if (right_node->_scope_length > min_features
-              && right_node->_row_idx.size () > min_instances)
+          if (right_node->_scope_length > min_features && right_node->_row_idx.size () > min_instances)
             nodes_to_process.push (right_node);
           else
             right_node->fit (X, input_parameters.alpha);
@@ -585,9 +522,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                               >&left_nodes,
                               std::vector < std::shared_ptr < tree_node >
                               >&right_nodes,
-                              std::vector < double >&best_left_ll,
-                              std::vector < double >&best_right_ll,
-                              double alpha)
+                              std::vector < double >&best_left_ll, std::vector < double >&best_right_ll, double alpha)
 {
 
   std::vector < std::shared_ptr < cltree > >best_left_clt;
@@ -595,8 +530,7 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
 
   std::vector < double >best_ll;
 
-  std::vector < std::vector < int >>best_left_data_row_index,
-    best_right_data_row_index;
+  std::vector < std::vector < int >>best_left_data_row_index, best_right_data_row_index;
   std::vector < std::vector < int >>scope_split;
 
   std::vector < int >split_feature;
@@ -636,23 +570,17 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
               std::vector < int >scope = n->_scope;
               scope[i] = 0;
 
-              left_clt->fit (X, rows_left, left_data_row_index, scope,
-                             n->_scope_length - 1, alpha);
-              right_clt->fit (X, rows_right, right_data_row_index, scope,
-                              n->_scope_length - 1, alpha);
+              left_clt->fit (X, rows_left, left_data_row_index, scope, n->_scope_length - 1, alpha);
+              right_clt->fit (X, rows_right, right_data_row_index, scope, n->_scope_length - 1, alpha);
 
-              double left_ll =
-                mean (left_clt->eval (X, left_data_row_index, scope));
-              double right_ll =
-                mean (right_clt->eval (X, right_data_row_index, scope));
+              double left_ll = mean (left_clt->eval (X, left_data_row_index, scope));
+              double right_ll = mean (right_clt->eval (X, right_data_row_index, scope));
               double split_ll =
                 ((left_ll +
                   log ((double) rows_left / (rows_left + rows_right))) *
                  rows_left + (right_ll +
                               log ((double) rows_right /
-                                   (rows_left +
-                                    rows_right))) * rows_right) / (rows_left +
-                                                                   rows_right);
+                                   (rows_left + rows_right))) * rows_right) / (rows_left + rows_right);
 
               if (best_left_clt.size () < option_node_length)
                 {
@@ -710,17 +638,13 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
 
       double left_w, right_w;
       left_w = (double) best_left_data_row_index[k].size () /
-        (best_left_data_row_index[k].size () +
-         best_right_data_row_index[k].size ());
+        (best_left_data_row_index[k].size () + best_right_data_row_index[k].size ());
       right_w =
         (double) best_right_data_row_index[k].size () /
-        (best_left_data_row_index[k].size () +
-         best_right_data_row_index[k].size ());
+        (best_left_data_row_index[k].size () + best_right_data_row_index[k].size ());
 
-      std::shared_ptr < tree_node >
-        left_tree_node (new tree_node (best_left_clt[k]));
-      std::shared_ptr < tree_node >
-        right_tree_node (new tree_node (best_right_clt[k]));
+      std::shared_ptr < tree_node > left_tree_node (new tree_node (best_left_clt[k]));
+      std::shared_ptr < tree_node > right_tree_node (new tree_node (best_right_clt[k]));
 
       left_nodes.push_back (left_tree_node);
       right_nodes.push_back (right_tree_node);
@@ -739,52 +663,36 @@ optioncnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
 
       weights.push_back ((double) 1 / split_feature.size ());
       or_nodes.push_back (std::make_shared < or_node >
-                          (or_node
-                           (left_tree_node, right_tree_node, left_w, right_w,
-                            split_feature[k])));
+                          (or_node (left_tree_node, right_tree_node, left_w, right_w, split_feature[k])));
       left_tree_node->_parent = or_nodes.back ();
       right_tree_node->_parent = or_nodes.back ();
     }
 
   if (n == _root)
     {
-      _root =
-        std::make_shared < option_node > (option_node (or_nodes, weights));
+      _root = std::make_shared < option_node > (option_node (or_nodes, weights));
       for (unsigned int k = 0; k < split_feature.size (); k++)
         or_nodes[k]->_parent = _root;
     }
   else
     {
-      if (std::static_pointer_cast < or_node >
-          (n->_parent.lock ())->get_left_child () == n)
+      if (std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child () == n)
         {
           std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->set_left_child (std::make_shared <
-                                                  option_node >
-                                                  (option_node
-                                                   (or_nodes, weights)));
+            (n->_parent.lock ())->set_left_child (std::make_shared < option_node > (option_node (or_nodes, weights)));
 
           for (unsigned int k = 0; k < split_feature.size (); k++)
-            or_nodes[k]->_parent =
-              std::static_pointer_cast < or_node >
-              (n->_parent.lock ())->get_left_child ();
-          std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
+            or_nodes[k]->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ();
+          std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
         }
       else
         {
           std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->set_right_child (std::make_shared <
-                                                   option_node >
-                                                   (option_node
-                                                    (or_nodes, weights)));
+            (n->_parent.lock ())->set_right_child (std::make_shared < option_node > (option_node (or_nodes, weights)));
           for (unsigned int k = 0; k < split_feature.size (); k++)
-            or_nodes[k]->_parent =
-              std::static_pointer_cast < or_node >
-              (n->_parent.lock ())->get_right_child ();
+            or_nodes[k]->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ();
 
-          std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
+          std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
         }
     }
   return true;
@@ -821,8 +729,7 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
     std::cout << "ll: " << node_training_ll[_root->get_id ()] << std::endl;
 
   std::queue < std::shared_ptr < tree_node > >nodes_to_process;
-  if (_root->_row_idx.size () > min_instances
-      && _root->_scope_length > min_features)
+  if (_root->_row_idx.size () > min_instances && _root->_scope_length > min_features)
     nodes_to_process.push (std::dynamic_pointer_cast < tree_node > (_root));
 
   while (!nodes_to_process.empty ())
@@ -832,11 +739,8 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
 
       if (verbose)
         {
-          std::cout << "Node Id " << n->get_id () << ", # instances " << n->
-            _row_idx.size () << ", scope length " << n->
-            _scope_length << ", local ll " << node_training_ll[n->
-                                                               get_id ()] <<
-            std::endl;
+          std::cout << "Node Id " << n->get_id () << ", # instances " << n->_row_idx.size () << ", scope length " << n->
+            _scope_length << ", local ll " << node_training_ll[n->get_id ()] << std::endl;
           std::cout.flush ();
         }
       bool option_node_created = false;
@@ -846,18 +750,15 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
           std::vector < std::shared_ptr < tree_node > >leftNodes, rightNodes;
           std::vector < double >leftLL, rightLL;
           option_node_created =
-            make_option_node (X, n, option_node_length, leftNodes, rightNodes,
-                              leftLL, rightLL, input_parameters.alpha);
+            make_option_node (X, n, option_node_length, leftNodes, rightNodes, leftLL, rightLL, input_parameters.alpha);
           if (option_node_created)
             for (unsigned int k = 0; k < leftNodes.size (); k++)
               {
                 node_training_ll[leftNodes[k]->get_id ()] = leftLL[k];
                 node_training_ll[rightNodes[k]->get_id ()] = rightLL[k];
-                if (leftNodes[k]->_scope_length > min_features
-                    && leftNodes[k]->_row_idx.size () > min_instances)
+                if (leftNodes[k]->_scope_length > min_features && leftNodes[k]->_row_idx.size () > min_instances)
                   nodes_to_process.push (leftNodes[k]);
-                if (rightNodes[k]->_scope_length > min_features
-                    && rightNodes[k]->_row_idx.size () > min_instances)
+                if (rightNodes[k]->_scope_length > min_features && rightNodes[k]->_row_idx.size () > min_instances)
                   nodes_to_process.push (rightNodes[k]);
               }
         }
@@ -869,16 +770,13 @@ optioncnet::fit (dataset & X, paramsexp & input_parameters)
 
           if (make_or_node
               (X, n, node_training_ll[n->get_id ()], best_left_ll,
-               best_right_ll, best_left_node, best_right_node,
-               input_parameters.alpha))
+               best_right_ll, best_left_node, best_right_node, input_parameters.alpha))
             {
               node_training_ll[best_left_node->get_id ()] = best_left_ll;
               node_training_ll[best_right_node->get_id ()] = best_right_ll;
-              if (best_left_node->_scope_length > min_features
-                  && best_left_node->_row_idx.size () > min_instances)
+              if (best_left_node->_scope_length > min_features && best_left_node->_row_idx.size () > min_instances)
                 nodes_to_process.push (best_left_node);
-              if (best_right_node->_scope_length > min_features
-                  && best_right_node->_row_idx.size () > min_instances)
+              if (best_right_node->_scope_length > min_features && best_right_node->_row_idx.size () > min_instances)
                 nodes_to_process.push (best_right_node);
             }
           else
@@ -902,8 +800,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                                std::vector < std::shared_ptr < tree_node >
                                >&right_nodes,
                                std::vector < double >&best_left_ll,
-                               std::vector < double >&best_right_ll,
-                               double alpha)
+                               std::vector < double >&best_right_ll, double alpha)
 {
 
   std::vector < std::shared_ptr < cltree > >best_left_clt;
@@ -911,8 +808,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
 
   std::vector < double >best_ll;
 
-  std::vector < std::vector < int >>best_left_data_row_index,
-    best_right_data_row_index;
+  std::vector < std::vector < int >>best_left_data_row_index, best_right_data_row_index;
   std::vector < std::vector < int >>scope_split;
 
   std::vector < int >split_feature;
@@ -926,15 +822,15 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
     if (n->_scope[i])
       candidate_splits.push_back (i);
 
-  shuffle (candidate_splits.begin(), candidate_splits.end(), random_generator);
+  shuffle (candidate_splits.begin (), candidate_splits.end (), random_generator);
 
   for (unsigned int k = 0; k < option_node_length; k++)
     {
       bool found_feature = false;
-      while (candidate_splits.size() && !found_feature)
+      while (candidate_splits.size () && !found_feature)
         {
-          unsigned int i = candidate_splits.back();
-          candidate_splits.pop_back();
+          unsigned int i = candidate_splits.back ();
+          candidate_splits.pop_back ();
 
           if (n->_scope[i])
             {
@@ -965,7 +861,7 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
                   std::vector < int >scope = n->_scope;
                   scope[i] = 0;
 
-                  if (best_left_clt.size() < option_node_length)
+                  if (best_left_clt.size () < option_node_length)
                     {
                       best_left_clt.push_back (left_clt);
                       best_right_clt.push_back (right_clt);
@@ -995,81 +891,77 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
   std::vector < double >weights;
 
   // data partitioning among the nodes
-  std::vector<std::vector<int>> partition_left(split_feature.size ());
-  std::vector<std::vector<int>> partition_right(split_feature.size ());
-  std::uniform_int_distribution<int> int_distribution(0,split_feature.size ()-1);
+  std::vector < std::vector < int >>partition_left (split_feature.size ());
+  std::vector < std::vector < int >>partition_right (split_feature.size ());
+  std::uniform_int_distribution < int >int_distribution (0, split_feature.size () - 1);
 
   // making bootstraps
 
-  std::uniform_int_distribution<int> int_distribution_bstr(0,n->_row_idx.size ()-1);
+  std::uniform_int_distribution < int >int_distribution_bstr (0, n->_row_idx.size () - 1);
   for (unsigned int j = 0; j < split_feature.size (); j++)
     {
       for (unsigned int k = 0; k < n->_row_idx.size (); k++)
         {
-          unsigned id = int_distribution_bstr(random_generator);
+          unsigned id = int_distribution_bstr (random_generator);
           if (X.data[n->_row_idx[id]][split_feature[j]])
-            partition_right[j].push_back(n->_row_idx[id]);
+            partition_right[j].push_back (n->_row_idx[id]);
           else
-            partition_left[j].push_back(n->_row_idx[id]);
+            partition_left[j].push_back (n->_row_idx[id]);
         }
     }
 
 
   /*
-  for (unsigned int j = 0; j < n->_row_idx.size (); j++)
+    for (unsigned int j = 0; j < n->_row_idx.size (); j++)
     {
-      unsigned comp = int_distribution(random_generator);
-      for (unsigned cc=0; cc<split_feature.size (); cc++)
-        {
-          if (cc!=comp && X.data[n->_row_idx[j]][split_feature[cc]])
-            {
-              partition_right[cc].push_back(n->_row_idx[j]);
-            }
-          else
-            {
-              partition_left[cc].push_back(n->_row_idx[j]);
-            }
-        }
+    unsigned comp = int_distribution(random_generator);
+    for (unsigned cc=0; cc<split_feature.size (); cc++)
+    {
+    if (cc!=comp && X.data[n->_row_idx[j]][split_feature[cc]])
+    {
+    partition_right[cc].push_back(n->_row_idx[j]);
+    }
+    else
+    {
+    partition_left[cc].push_back(n->_row_idx[j]);
+    }
+    }
     }
   */
   /*
-  for (unsigned int j = 0; j < n->_row_idx.size (); j++)
+    for (unsigned int j = 0; j < n->_row_idx.size (); j++)
     {
-      unsigned comp = int_distribution(random_generator);
-      if (X.data[n->_row_idx[j]][split_feature[comp]])
-        {
-          partition_right[comp].push_back(n->_row_idx[j]);
-        }
-      else
-        {
-          partition_left[comp].push_back(n->_row_idx[j]);
-        }
+    unsigned comp = int_distribution(random_generator);
+    if (X.data[n->_row_idx[j]][split_feature[comp]])
+    {
+    partition_right[comp].push_back(n->_row_idx[j]);
+    }
+    else
+    {
+    partition_left[comp].push_back(n->_row_idx[j]);
+    }
     }
   */
   for (unsigned int j = 0; j < split_feature.size (); j++)
     {
-      if (partition_left[j].size()>0)
+      if (partition_left[j].size () > 0)
         best_left_data_row_index[j] = partition_left[j];
-      if (partition_right[j].size()>0)
+      if (partition_right[j].size () > 0)
         best_right_data_row_index[j] = partition_right[j];
-     }
+    }
 
   for (unsigned int k = 0; k < split_feature.size (); k++)
     {
 
       double left_w, right_w;
       left_w = (double) best_left_data_row_index[k].size () /
-        (best_left_data_row_index[k].size () +
-         best_right_data_row_index[k].size ());
+        (best_left_data_row_index[k].size () + best_right_data_row_index[k].size ());
       right_w =
         (double) best_right_data_row_index[k].size () /
-        (best_left_data_row_index[k].size () +
-         best_right_data_row_index[k].size ());
+        (best_left_data_row_index[k].size () + best_right_data_row_index[k].size ());
 
-      std::shared_ptr < tree_node >
-        left_tree_node (new tree_node (best_left_clt[k]));
-      std::shared_ptr < tree_node >
-        right_tree_node (new tree_node (best_right_clt[k]));
+      std::shared_ptr < tree_node > left_tree_node (new tree_node (best_left_clt[k]));
+      std::shared_ptr < tree_node > right_tree_node (new tree_node (best_right_clt[k]));
 
       left_nodes.push_back (left_tree_node);
       right_nodes.push_back (right_tree_node);
@@ -1090,52 +982,36 @@ optionxcnet::make_option_node (dataset & X, std::shared_ptr < tree_node > n,
       //                                         best_right_data_row_index[k].size ()) / n->_row_idx.size ());
       weights.push_back ((double) 1 / split_feature.size ());
       or_nodes.push_back (std::make_shared < or_node >
-                          (or_node
-                           (left_tree_node, right_tree_node, left_w, right_w,
-                            split_feature[k])));
+                          (or_node (left_tree_node, right_tree_node, left_w, right_w, split_feature[k])));
       left_tree_node->_parent = or_nodes.back ();
       right_tree_node->_parent = or_nodes.back ();
     }
 
   if (n == _root)
     {
-      _root =
-        std::make_shared < option_node > (option_node (or_nodes, weights));
+      _root = std::make_shared < option_node > (option_node (or_nodes, weights));
       for (unsigned int k = 0; k < split_feature.size (); k++)
         or_nodes[k]->_parent = _root;
     }
   else
     {
-      if (std::static_pointer_cast < or_node >
-          (n->_parent.lock ())->get_left_child () == n)
+      if (std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child () == n)
         {
           std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->set_left_child (std::make_shared <
-                                                  option_node >
-                                                  (option_node
-                                                   (or_nodes, weights)));
+            (n->_parent.lock ())->set_left_child (std::make_shared < option_node > (option_node (or_nodes, weights)));
 
           for (unsigned int k = 0; k < split_feature.size (); k++)
-            or_nodes[k]->_parent =
-              std::static_pointer_cast < or_node >
-              (n->_parent.lock ())->get_left_child ();
-          std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
+            or_nodes[k]->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ();
+          std::static_pointer_cast < or_node > (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
         }
       else
         {
           std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->set_right_child (std::make_shared <
-                                                   option_node >
-                                                   (option_node
-                                                    (or_nodes, weights)));
+            (n->_parent.lock ())->set_right_child (std::make_shared < option_node > (option_node (or_nodes, weights)));
           for (unsigned int k = 0; k < split_feature.size (); k++)
-            or_nodes[k]->_parent =
-              std::static_pointer_cast < or_node >
-              (n->_parent.lock ())->get_right_child ();
+            or_nodes[k]->_parent = std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ();
 
-          std::static_pointer_cast < or_node >
-            (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
+          std::static_pointer_cast < or_node > (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
         }
     }
   return true;
@@ -1167,13 +1043,10 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
   _root->_depth = 1;
 
   std::queue < std::shared_ptr < tree_node > >nodes_to_process;
-  if (_root->_row_idx.size () > min_instances
-      && _root->_scope_length > min_features)
+  if (_root->_row_idx.size () > min_instances && _root->_scope_length > min_features)
     nodes_to_process.push (std::dynamic_pointer_cast < tree_node > (_root));
   else
-    std::static_pointer_cast < tree_node > (_root)->fit (X,
-                                                         input_parameters.
-                                                         alpha);
+    std::static_pointer_cast < tree_node > (_root)->fit (X, input_parameters.alpha);
 
   std::shared_ptr < tree_node > n;
 
@@ -1184,8 +1057,7 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
 
       if (verbose)
         std::cout << "Node Id " << n->get_id () << ", # instances " <<
-          n->_row_idx.size () << ", scope length " << n->
-          _scope_length << std::endl;
+          n->_row_idx.size () << ", scope length " << n->_scope_length << std::endl;
 
       bool option_node_created = false;
       if (n->_depth <= option_depth)
@@ -1194,18 +1066,15 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
           std::vector < std::shared_ptr < tree_node > >leftNodes, rightNodes;
           std::vector < double >leftLL, rightLL;
           option_node_created =
-            make_option_node (X, n, option_node_length, leftNodes, rightNodes,
-                              leftLL, rightLL, input_parameters.alpha);
+            make_option_node (X, n, option_node_length, leftNodes, rightNodes, leftLL, rightLL, input_parameters.alpha);
           if (option_node_created)
             for (unsigned int k = 0; k < leftNodes.size (); k++)
               {
-                if (leftNodes[k]->_scope_length > min_features
-                    && leftNodes[k]->_row_idx.size () > min_instances)
+                if (leftNodes[k]->_scope_length > min_features && leftNodes[k]->_row_idx.size () > min_instances)
                   nodes_to_process.push (leftNodes[k]);
                 else
                   leftNodes[k]->fit (X, input_parameters.alpha);
-                if (rightNodes[k]->_scope_length > min_features
-                    && rightNodes[k]->_row_idx.size () > min_instances)
+                if (rightNodes[k]->_scope_length > min_features && rightNodes[k]->_row_idx.size () > min_instances)
                   nodes_to_process.push (rightNodes[k]);
                 else
                   rightNodes[k]->fit (X, input_parameters.alpha);
@@ -1214,17 +1083,14 @@ optionxcnet::fit (dataset & X, paramsexp & input_parameters)
       if (!option_node_created)
         {
           std::shared_ptr < tree_node > left_node, right_node;
-          if (make_or_node
-              (X, n, left_node, right_node, input_parameters.alpha))
+          if (make_or_node (X, n, left_node, right_node, input_parameters.alpha))
             {
 
-              if (left_node->_scope_length > min_features
-                  && left_node->_row_idx.size () > min_instances)
+              if (left_node->_scope_length > min_features && left_node->_row_idx.size () > min_instances)
                 nodes_to_process.push (left_node);
               else
                 left_node->fit (X, input_parameters.alpha);
-              if (right_node->_scope_length > min_features
-                  && right_node->_row_idx.size () > min_instances)
+              if (right_node->_scope_length > min_features && right_node->_row_idx.size () > min_instances)
                 nodes_to_process.push (right_node);
               else
                 right_node->fit (X, input_parameters.alpha);

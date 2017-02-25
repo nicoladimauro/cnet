@@ -81,9 +81,8 @@ main (int argc, char **argv)
 
 
   dataset train_data (data_file_name);
-  std::cout << "Loaded " << train_data.
-    shape[0] << " instances on " << train_data.
-    shape[1] << " variables, sparsity: " << train_data.sparsity << std::endl;
+  std::cout << "Loaded " << train_data.shape[0] << " instances on " << train_data.shape[1] << " variables, sparsity: "
+            << train_data.sparsity << std::endl;
 
   cltree C;
   auto t1 = std::chrono::high_resolution_clock::now ();
@@ -92,8 +91,6 @@ main (int argc, char **argv)
   auto t2 = std::chrono::high_resolution_clock::now ();
   std::cout << "Elapsed time: "
             << std::chrono::duration_cast < std::chrono::seconds > (t2 - t1).count ()
-            << " seconds, "
-            << std::chrono::duration_cast < std::chrono::milliseconds >
-    (t2 - t1).count () << " milliseconds\n";
+            << " seconds, " << std::chrono::duration_cast < std::chrono::milliseconds > (t2 - t1).count () << " milliseconds\n";
 
 }

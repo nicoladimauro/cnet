@@ -41,8 +41,7 @@ class ensemble
   virtual bool is_pdf (int) = 0;
 };
 
-template < class M>
-class enscnet : public ensemble
+template < class M > class enscnet:public ensemble
 {
  private:
   std::vector < std::shared_ptr < M > >_models;
@@ -51,14 +50,13 @@ class enscnet : public ensemble
   bool _bootstraps;
  public:
   bool is_pdf (int);
-  enscnet (int, bool bootstraps=true);
+  enscnet (int, bool bootstraps = true);
   void fit (dataset &, paramsexp &);
   std::vector < std::vector < double >>eval (dataset &);
   std::vector < double >eval (dataset &, int);
 };
 
-template < class M>
-enscnet < M>::enscnet (int n_models, bool bootstraps)
+template < class M > enscnet < M >::enscnet (int n_models, bool bootstraps)
 {
   _n_models = n_models;
   _bootstraps = bootstraps;
@@ -68,8 +66,7 @@ enscnet < M>::enscnet (int n_models, bool bootstraps)
     }
 }
 
-template < class M>
-  void enscnet < M>::fit (dataset & X, paramsexp & input_parameters)
+template < class M > void enscnet < M >::fit (dataset & X, paramsexp & input_parameters)
 {
   if (!_bootstraps)
     for (unsigned int i = 0; i < _n_models; i++)
@@ -98,11 +95,14 @@ template < class M>
 }
 
 
-template < class M>
-std::vector < std::vector < double >> enscnet <M>::eval (dataset & X)
+template < class M > std::vector < std::vector < double >>
+enscnet <
+M >::eval (dataset & X)
 {
-  std::vector < double > lls;
-  std::vector < std::vector < double >> models_ll;
+  std::vector < double >
+    lls;
+  std::vector < std::vector < double >>
+    models_ll;
 
   lls.resize (X.shape[0], 0.0);
   for (unsigned int i = 0; i < _n_models; i++)
@@ -111,14 +111,14 @@ std::vector < std::vector < double >> enscnet <M>::eval (dataset & X)
   return models_ll;
 }
 
-template < class M>
-std::vector < double > enscnet <M>::eval (dataset & X, int component)
+template < class M > std::vector < double >
+enscnet <
+M >::eval (dataset & X, int component)
 {
   return _models[component]->eval (X);
 }
 
-template < class M>
-bool enscnet < M>::is_pdf (int nc)
+template < class M > bool enscnet < M >::is_pdf (int nc)
 {
   int
     l = 16;
@@ -170,8 +170,7 @@ bool enscnet < M>::is_pdf (int nc)
   for (auto & v:lls)
     sum += exp (v);
 
-  std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size () <<
-    " " << std::setprecision (10) << sum;
+  std::cout << "Is pdf: " << " " << X.shape[0] << " " << result.size () << " " << std::setprecision (10) << sum;
 
   return (sum == 1.0);
 }

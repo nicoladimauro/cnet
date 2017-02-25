@@ -66,9 +66,9 @@ dataset::dataset (const std::string file_name)
   while (getline (data_file, line))
     {
       if (line.length ())
-  rows++;
+        rows++;
       if (rows == 1)
-  cols = splits (line, ',');
+        cols = splits (line, ',');
     }
   data_file.close ();
 

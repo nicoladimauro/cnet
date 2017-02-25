@@ -40,6 +40,7 @@ class params
   std::vector < int >option_length;
   bool ensemble;
   unsigned int max_components;
+  std::string leaf_distribution;
 
   friend std::ostream & operator<< (std::ostream & os, const params &);
 };

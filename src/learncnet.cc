@@ -39,8 +39,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "cmdline.h"
 #include "globals.h"
 
-std::mt19937
-random_generator;
+std::mt19937 random_generator;
 
 int
 verbose;
@@ -58,8 +57,7 @@ log_outdir (std::string problem_name, std::string out_path)
   strftime (buffer, 80, "%d-%m-%Y-%I-%M-%S", timeinfo);
 
 
-  return ("./" + out_path + "/" + problem_name + "_" + std::string (buffer) +
-          "/");
+  return ("./" + out_path + "/" + problem_name + "_" + std::string (buffer) + "/");
 }
 
 int
@@ -97,8 +95,7 @@ main (int argc, char **argv)
 
   if (args_info.option_length_given)
     for (unsigned int i = 0; i < args_info.option_length_given; i++)
-      input_parameters.option_length.push_back (args_info.
-                                                option_length_arg[i]);
+      input_parameters.option_length.push_back (args_info.option_length_arg[i]);
   else
     input_parameters.option_length.push_back (args_info.option_length_arg[0]);
 
@@ -116,13 +113,10 @@ main (int argc, char **argv)
   // loading data
 
   dataset train_data ("./data/" + input_parameters.problem_name + ".ts.data");
-  dataset valid_data ("./data/" + input_parameters.problem_name +
-                      ".valid.data");
-  dataset test_data ("./data/" + input_parameters.problem_name +
-                     ".test.data");
+  dataset valid_data ("./data/" + input_parameters.problem_name + ".valid.data");
+  dataset test_data ("./data/" + input_parameters.problem_name + ".test.data");
 
-  std::string output_dir_name =
-    log_outdir (input_parameters.problem_name, input_parameters.out_path);
+  std::string output_dir_name = log_outdir (input_parameters.problem_name, input_parameters.out_path);
   std::string system_command = "mkdir -p " + output_dir_name;
   const int dir_err = std::system (system_command.c_str ());
   if (-1 == dir_err)
@@ -134,9 +128,8 @@ main (int argc, char **argv)
   std::ofstream output;
   output.open (output_dir_name + "exp.log", std::ofstream::out);
 
-  std::cout << "Loaded " << train_data.
-    shape[0] << " instances on " << train_data.
-    shape[1] << " variables, sparsity: " << train_data.sparsity << std::endl;
+  std::cout << "Loaded " << train_data.shape[0] << " instances on " << train_data.shape[1] << " variables, sparsity: "
+            << train_data.sparsity << std::endl;
 
   paramsexp pars;
 
@@ -161,8 +154,7 @@ main (int argc, char **argv)
             {
 
               output << input_parameters.min_instances[mi] << "," <<
-                input_parameters.min_features[mf] << "," <<
-                input_parameters.alpha[ma];
+                input_parameters.min_features[mf] << "," << input_parameters.alpha[ma];
 
 
               pars.problem_name = input_parameters.problem_name;
@@ -176,15 +168,13 @@ main (int argc, char **argv)
               pars.max_components = input_parameters.max_components;
 
               std::cout << "  min_inst=" << pars.min_instances <<
-                ", min_feat=" << pars.min_features <<
-                ", alpha=" << pars.alpha;
+                ", min_feat=" << pars.min_features << ", alpha=" << pars.alpha;
               std::cout.flush ();
 
 
               int max_iterations = 1;
 
-              if (input_parameters.model == "xcnet"
-                  || input_parameters.model == "optionxcnet")
+              if (input_parameters.model == "xcnet" || input_parameters.model == "optionxcnet")
                 max_iterations = 10;
 
               std::vector < double >time_accum;
@@ -200,7 +190,7 @@ main (int argc, char **argv)
               for (int iter = 0; iter < max_iterations; iter++)
                 {
 
-                  std::shared_ptr < cnet<cltree> > C;
+                  std::shared_ptr < cnet < cltree > >C;
 
                   std::cout << "\n    iter:" << iter << " ";
                   auto t1 = std::chrono::high_resolution_clock::now ();
@@ -208,22 +198,22 @@ main (int argc, char **argv)
 
                   if (input_parameters.model == "cnet")
                     {
-                      C = std::make_shared < cnet<cltree> > ();
+                      C = std::make_shared < cnet < cltree > >();
                       C->fit (train_data, pars);
                     }
                   if (input_parameters.model == "xcnet")
                     {
-                      C = std::make_shared < xcnet<cltree> > ();
+                      C = std::make_shared < xcnet < cltree > >();
                       C->fit (train_data, pars);
                     }
                   if (input_parameters.model == "optioncnet")
                     {
-                      C = std::make_shared < optioncnet<cltree> > ();
+                      C = std::make_shared < optioncnet < cltree > >();
                       C->fit (train_data, pars);
                     }
                   if (input_parameters.model == "optionxcnet")
                     {
-                      C = std::make_shared < optionxcnet<cltree> > ();
+                      C = std::make_shared < optionxcnet < cltree > >();
                       C->fit (train_data, pars);
                     }
                   auto t2 = std::chrono::high_resolution_clock::now ();
@@ -240,23 +230,17 @@ main (int argc, char **argv)
 
                   C->compute_stats ();
 
-                  std::cout << " [Net stats -- or:" << C->
-                    _n_or_nodes << ", tr:" << C->
-                    _n_tree_nodes << ", op:" << C->
-                    _n_option_nodes << ", maxd:" << C->
-                    _max_depth << ", meand:" << C->_mean_depth << "]";
+                  std::cout << " [Net stats -- or:" << C->_n_or_nodes << ", tr:" << C->_n_tree_nodes << ", op:" <<
+                    C->_n_option_nodes << ", maxd:" << C->_max_depth << ", meand:" << C->_mean_depth << "]";
 
                   std::cout << ", time:"
                             << (double) std::chrono::duration_cast <
-                              std::chrono::milliseconds >
-                    (t2 - t1).count () / 1000 << " s";
+                                 std::chrono::milliseconds > (t2 - t1).count () / 1000 << " s";
 
-                  std::cout << ", trainLL:" << train_ll <<
-                    ", validLL:" << valid_ll << ", testLL:" << test_ll;
+                  std::cout << ", trainLL:" << train_ll << ", validLL:" << valid_ll << ", testLL:" << test_ll;
 
                   time_accum.push_back ((double) std::chrono::duration_cast <
-                                        std::chrono::milliseconds >
-                                        (t2 - t1).count () / 1000);
+                                        std::chrono::milliseconds > (t2 - t1).count () / 1000);
                   or_nodes_accum.push_back (C->_n_or_nodes);
                   tree_nodes_accum.push_back (C->_n_tree_nodes);
                   option_nodes_accum.push_back (C->_n_option_nodes);
@@ -269,33 +253,24 @@ main (int argc, char **argv)
               std::cout << std::endl;
 
               double meanTime = mean (time_accum);
-              output << "," << meanTime << "," << stdev (time_accum,
-                                                         meanTime);
+              output << "," << meanTime << "," << stdev (time_accum, meanTime);
               double meanOr = mean (or_nodes_accum);
-              output << "," << meanOr << "," << stdev (or_nodes_accum,
-                                                       meanOr);
+              output << "," << meanOr << "," << stdev (or_nodes_accum, meanOr);
               double meanTree = mean (tree_nodes_accum);
-              output << "," << meanTree << "," << stdev (tree_nodes_accum,
-                                                         meanTree);
+              output << "," << meanTree << "," << stdev (tree_nodes_accum, meanTree);
               double meanOption = mean (option_nodes_accum);
-              output << "," << meanOption << "," << stdev (option_nodes_accum,
-                                                           meanOption);
+              output << "," << meanOption << "," << stdev (option_nodes_accum, meanOption);
               double meanMaxDepth = mean (max_cnet_depth_accum);
-              output << "," << meanMaxDepth << "," <<
-                stdev (max_cnet_depth_accum, meanMaxDepth);
+              output << "," << meanMaxDepth << "," << stdev (max_cnet_depth_accum, meanMaxDepth);
               double meanMeanDepth = mean (mean_cnet_depth_accum);
-              output << "," << meanMeanDepth << "," <<
-                stdev (mean_cnet_depth_accum, meanMeanDepth);
+              output << "," << meanMeanDepth << "," << stdev (mean_cnet_depth_accum, meanMeanDepth);
 
               double meanTrainLL = mean (train_ll_accum);
-              output << "," << meanTrainLL << "," << stdev (train_ll_accum,
-                                                            meanTrainLL);
+              output << "," << meanTrainLL << "," << stdev (train_ll_accum, meanTrainLL);
               double meanValidLL = mean (valid_ll_accum);
-              output << "," << meanValidLL << "," << stdev (valid_ll_accum,
-                                                            meanValidLL);
+              output << "," << meanValidLL << "," << stdev (valid_ll_accum, meanValidLL);
               double meanTestLL = mean (test_ll_accum);
-              output << "," << meanTestLL << "," << stdev (test_ll_accum,
-                                                           meanTestLL);
+              output << "," << meanTestLL << "," << stdev (test_ll_accum, meanTestLL);
               output << std::endl;
             }
         }
