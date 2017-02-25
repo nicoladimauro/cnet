@@ -22,6 +22,11 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _BERNOULLI
 #define _BERNOULLI
 
+#include <vector>
+
+#include "dataset.h"
+
+
 class bernoulli
 {
   std::vector<std::vector<double>> _log_thetas;

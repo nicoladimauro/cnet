@@ -32,8 +32,6 @@ bernoulli::eval (dataset & X)
 {
   unsigned int
     i, r;
-  int
-    p;
 
   SOFT_ASSERT (_fitted, "error: bernoulli is not fitted!");
 
@@ -60,8 +58,6 @@ bernoulli::eval (dataset & X, std::vector < int >&rows_idx, std::vector < int >&
 {
   unsigned int
     i, r;
-  int
-    p;
 
   SOFT_ASSERT (_fitted, "error: bernoulli is not fitted!");
 
@@ -102,7 +98,7 @@ bernoulli::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
                 std::vector < int >&scope, int scope_length, double alpha)
 {
   unsigned int
-    i, j, k;
+    i, k;
 
   _fitted = true;
   _n_vars = scope_length;
@@ -145,7 +141,7 @@ bernoulli::fit (dataset & X, int n_rows, std::vector < int >&rows_idx,
 void
 bernoulli::fit (dataset & X, double alpha)
 {
-  unsigned int i, j, k;
+  unsigned int i,  k;
 
   _fitted = true;
   _n_vars = X.shape[1];

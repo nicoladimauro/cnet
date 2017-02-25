@@ -43,12 +43,12 @@ node::~node ()
 }
 
 int
-node::get_id () const const const
+node::get_id () const
 {
   return _id;
 }
 
-node_type node::get_type () constconst
+node_type node::get_type () const
 {
   return _type;
 }

@@ -107,8 +107,6 @@ main (int argc, char **argv)
 
   std::cout << input_parameters;
 
-  random_generator.seed (input_parameters.seed);
-
 
   // loading data
 
@@ -152,6 +150,8 @@ main (int argc, char **argv)
         {
           for (unsigned int ma = 0; ma < input_parameters.alpha.size (); ma++)
             {
+
+              random_generator.seed (input_parameters.seed);
 
               output << input_parameters.min_instances[mi] << "," <<
                 input_parameters.min_features[mf] << "," << input_parameters.alpha[ma];

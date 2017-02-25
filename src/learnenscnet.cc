@@ -28,6 +28,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <map>
 
 #include "cltree.h"
+#include "bernoulli.h"
 #include "dataset.h"
 #include "nodes.h"
 #include "cnet.h"
@@ -90,6 +91,7 @@ main (int argc, char **argv)
   input_parameters.seed = args_info.seed_arg;
   input_parameters.out_path = args_info.output_dir_arg;
   input_parameters.model = args_info.model_arg;
+  input_parameters.leaf_distribution = args_info.leaf_distribution_arg;
 
   if (args_info.option_length_given)
     for (unsigned int i = 0; i < args_info.option_length_given; i++)
@@ -169,14 +171,31 @@ main (int argc, char **argv)
 
               std::shared_ptr < ensemble > C;
 
-              if (input_parameters.model == "cnet")
-                C = std::make_shared < enscnet < cnet < cltree >>> (input_parameters.max_components, true);
-              if (input_parameters.model == "xcnet")
-                C = std::make_shared < enscnet < xcnet < cltree >> >(input_parameters.max_components, false);
-              if (input_parameters.model == "optioncnet")
-                C = std::make_shared < enscnet < optioncnet < cltree >> >(input_parameters.max_components, true);
-              if (input_parameters.model == "optionxcnet")
-                C = std::make_shared < enscnet < optionxcnet < cltree >> >(input_parameters.max_components, false);
+              if (input_parameters.leaf_distribution == "cltree")
+                {
+                  if (input_parameters.model == "cnet")
+                    C = std::make_shared < enscnet < cnet < cltree >>> (input_parameters.max_components, true);
+                  if (input_parameters.model == "xcnet")
+                    C = std::make_shared < enscnet < xcnet < cltree >> >(input_parameters.max_components, false);
+                  if (input_parameters.model == "optioncnet")
+                    C = std::make_shared < enscnet < optioncnet < cltree >> >(input_parameters.max_components, true);
+                  if (input_parameters.model == "optionxcnet")
+                    C = std::make_shared < enscnet < optionxcnet < cltree >> >(input_parameters.max_components, false);
+                }
+              else
+                if (input_parameters.leaf_distribution == "bernoulli")
+                  {
+                    if (input_parameters.model == "cnet")
+                      C = std::make_shared < enscnet < cnet < bernoulli >>> (input_parameters.max_components, true);
+                    if (input_parameters.model == "xcnet")
+                      C = std::make_shared < enscnet < xcnet < bernoulli >> >(input_parameters.max_components, false);
+                    if (input_parameters.model == "optioncnet")
+                      C = std::make_shared < enscnet < optioncnet < bernoulli >> >
+                        (input_parameters.max_components, true);
+                    if (input_parameters.model == "optionxcnet")
+                      C = std::make_shared < enscnet < optionxcnet < bernoulli >> >
+                        (input_parameters.max_components, false);
+                  }
 
               auto t1 = std::chrono::high_resolution_clock::now ();
               C->fit (train_data, pars);
