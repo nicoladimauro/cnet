@@ -31,6 +31,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdlib>
 
 #include "cltree.h"
+#include "bernoulli.h"
+#include "mix_bernoulli.h"
 #include "dataset.h"
 #include "nodes.h"
 #include "cnet.h"
@@ -92,6 +94,7 @@ main (int argc, char **argv)
   input_parameters.out_path = args_info.output_dir_arg;
   input_parameters.model = args_info.model_arg;
   input_parameters.leaf_distribution = args_info.leaf_distribution_arg;
+  input_parameters.max_components_bmix = args_info.kbm_arg;
 
   if (args_info.option_length_given)
     for (unsigned int i = 0; i < args_info.option_length_given; i++)
@@ -190,48 +193,151 @@ main (int argc, char **argv)
               for (int iter = 0; iter < max_iterations; iter++)
                 {
 
-                  std::shared_ptr < cnet < cltree > >C;
+                  std::shared_ptr < cnet < cltree > > M_cltree;
+                  std::shared_ptr < cnet < bernoulli > > M_bernoulli;
+                  std::shared_ptr < cnet < mix_bernoulli > > M_mix_bernoulli;
+
+                  std::vector < double >train_lls;
+                  std::vector < double >valid_lls;
+                  std::vector < double >test_lls;
 
                   std::cout << "\n    iter:" << iter << " ";
                   auto t1 = std::chrono::high_resolution_clock::now ();
 
+                  if (input_parameters.leaf_distribution == "cltree")
+                    {
 
-                  if (input_parameters.model == "cnet")
-                    {
-                      C = std::make_shared < cnet < cltree > >();
-                      C->fit (train_data, pars);
+                      if (input_parameters.model == "cnet")
+                        {
+                          M_cltree = std::make_shared< cnet < cltree > >();
+                          M_cltree->fit (train_data, pars);
+                        }
+                      if (input_parameters.model == "xcnet")
+                        {
+                          M_cltree = std::make_shared < xcnet < cltree > >();
+                          M_cltree->fit (train_data, pars);
+                        }
+                      if (input_parameters.model == "optioncnet")
+                        {
+                          M_cltree = std::make_shared < optioncnet < cltree > >();
+                          M_cltree->fit (train_data, pars);
+                        }
+                      if (input_parameters.model == "optionxcnet")
+                        {
+                          M_cltree = std::make_shared < optionxcnet < cltree > >();
+                          M_cltree->fit (train_data, pars);
+                        }
                     }
-                  if (input_parameters.model == "xcnet")
-                    {
-                      C = std::make_shared < xcnet < cltree > >();
-                      C->fit (train_data, pars);
-                    }
-                  if (input_parameters.model == "optioncnet")
-                    {
-                      C = std::make_shared < optioncnet < cltree > >();
-                      C->fit (train_data, pars);
-                    }
-                  if (input_parameters.model == "optionxcnet")
-                    {
-                      C = std::make_shared < optionxcnet < cltree > >();
-                      C->fit (train_data, pars);
-                    }
+                  else
+                    if (input_parameters.leaf_distribution == "bernoulli")
+                      {
+
+                        if (input_parameters.model == "cnet")
+                          {
+                            M_bernoulli = std::make_shared < cnet < bernoulli > >();
+                            M_bernoulli->fit (train_data, pars);
+                          }
+                        if (input_parameters.model == "xcnet")
+                          {
+                            M_bernoulli = std::make_shared < xcnet < bernoulli > >();
+                            M_bernoulli->fit (train_data, pars);
+                          }
+                        if (input_parameters.model == "optioncnet")
+                          {
+                            M_bernoulli = std::make_shared < optioncnet < bernoulli > >();
+                            M_bernoulli->fit (train_data, pars);
+                          }
+                        if (input_parameters.model == "optionxcnet")
+                          {
+                            M_bernoulli = std::make_shared < optionxcnet < bernoulli > >();
+                            M_bernoulli->fit (train_data, pars);
+                          }
+                      }
+                    else
+                      if (input_parameters.leaf_distribution == "mix-bernoulli")
+                        {
+
+                          if (input_parameters.model == "cnet")
+                            {
+                              M_mix_bernoulli = std::make_shared < cnet < mix_bernoulli > > ();
+                              M_mix_bernoulli->fit (train_data, pars);
+                            }
+                          if (input_parameters.model == "xcnet")
+                            {
+                              M_mix_bernoulli = std::make_shared < xcnet < mix_bernoulli > >();
+                              M_mix_bernoulli->fit (train_data, pars);
+                            }
+                          if (input_parameters.model == "optioncnet")
+                            {
+                              M_mix_bernoulli = std::make_shared < optioncnet < mix_bernoulli > >();
+                              M_mix_bernoulli->fit (train_data, pars);
+                            }
+                          if (input_parameters.model == "optionxcnet")
+                            {
+                              M_mix_bernoulli = std::make_shared < optionxcnet < mix_bernoulli > >();
+                              M_mix_bernoulli->fit (train_data, pars);
+                            }
+                        }
+
                   auto t2 = std::chrono::high_resolution_clock::now ();
 
-                  std::vector < double >train_lls = C->eval (train_data);
-                  std::vector < double >valid_lls = C->eval (valid_data);
-                  std::vector < double >test_lls = C->eval (test_data);
 
+                  //C->is_pdf();
+                  if (input_parameters.leaf_distribution == "cltree")
+                    {
+                      train_lls = M_cltree->eval(train_data);
+                      valid_lls = M_cltree->eval(valid_data);
+                      test_lls = M_cltree->eval(test_data);
+                      M_cltree->compute_stats ();
+
+                      std::cout << " [Net stats -- or:" << M_cltree->_n_or_nodes << ", tr:" <<
+                        M_cltree->_n_tree_nodes << ", op:" << M_cltree->_n_option_nodes << ", maxd:" <<
+                        M_cltree->_max_depth << ", meand:" << M_cltree->_mean_depth << "]";
+                      or_nodes_accum.push_back (M_cltree->_n_or_nodes);
+                      tree_nodes_accum.push_back (M_cltree->_n_tree_nodes);
+                      option_nodes_accum.push_back (M_cltree->_n_option_nodes);
+                      max_cnet_depth_accum.push_back (M_cltree->_max_depth);
+                      mean_cnet_depth_accum.push_back (M_cltree->_mean_depth);
+                    }
+                  else if (input_parameters.leaf_distribution == "bernoulli")
+                    {
+                      train_lls = M_bernoulli->eval (train_data);
+                      valid_lls = M_bernoulli->eval(valid_data);
+                      test_lls = M_bernoulli->eval(test_data);
+                      M_bernoulli->compute_stats ();
+
+                      std::cout << " [Net stats -- or:" << M_bernoulli->_n_or_nodes << ", tr:" <<
+                        M_bernoulli->_n_tree_nodes << ", op:" << M_bernoulli->_n_option_nodes << ", maxd:" <<
+                        M_bernoulli->_max_depth << ", meand:" << M_bernoulli->_mean_depth << "]";
+                      or_nodes_accum.push_back (M_bernoulli->_n_or_nodes);
+                      tree_nodes_accum.push_back (M_bernoulli->_n_tree_nodes);
+                      option_nodes_accum.push_back (M_bernoulli->_n_option_nodes);
+                      max_cnet_depth_accum.push_back (M_bernoulli->_max_depth);
+                      mean_cnet_depth_accum.push_back (M_bernoulli->_mean_depth);
+                    }
+                  else if (input_parameters.leaf_distribution == "mix-bernoulli")
+                    {
+                      train_lls = M_mix_bernoulli->eval (train_data);
+                      valid_lls = M_mix_bernoulli->eval(valid_data);
+                      test_lls = M_mix_bernoulli->eval(test_data);
+                      M_mix_bernoulli->compute_stats ();
+
+                      std::cout << " [Net stats -- or:" << M_mix_bernoulli->_n_or_nodes << ", tr:" <<
+                        M_mix_bernoulli->_n_tree_nodes << ", op:" << M_mix_bernoulli->_n_option_nodes << ", maxd:" <<
+                        M_mix_bernoulli->_max_depth << ", meand:" << M_mix_bernoulli->_mean_depth << "]";
+                      or_nodes_accum.push_back (M_mix_bernoulli->_n_or_nodes);
+                      tree_nodes_accum.push_back (M_mix_bernoulli->_n_tree_nodes);
+                      option_nodes_accum.push_back (M_mix_bernoulli->_n_option_nodes);
+                      max_cnet_depth_accum.push_back (M_mix_bernoulli->_max_depth);
+                      mean_cnet_depth_accum.push_back (M_mix_bernoulli->_mean_depth);
+                    }
                   double train_ll = mean (train_lls);
                   double valid_ll = mean (valid_lls);
                   double test_ll = mean (test_lls);
 
-                  //C->is_pdf();
-
-                  C->compute_stats ();
-
-                  std::cout << " [Net stats -- or:" << C->_n_or_nodes << ", tr:" << C->_n_tree_nodes << ", op:" <<
-                    C->_n_option_nodes << ", maxd:" << C->_max_depth << ", meand:" << C->_mean_depth << "]";
+                  train_ll_accum.push_back (train_ll);
+                  valid_ll_accum.push_back (valid_ll);
+                  test_ll_accum.push_back (test_ll);
 
                   std::cout << ", time:"
                             << (double) std::chrono::duration_cast <
@@ -241,14 +347,6 @@ main (int argc, char **argv)
 
                   time_accum.push_back ((double) std::chrono::duration_cast <
                                         std::chrono::milliseconds > (t2 - t1).count () / 1000);
-                  or_nodes_accum.push_back (C->_n_or_nodes);
-                  tree_nodes_accum.push_back (C->_n_tree_nodes);
-                  option_nodes_accum.push_back (C->_n_option_nodes);
-                  max_cnet_depth_accum.push_back (C->_max_depth);
-                  mean_cnet_depth_accum.push_back (C->_mean_depth);
-                  train_ll_accum.push_back (train_ll);
-                  valid_ll_accum.push_back (valid_ll);
-                  test_ll_accum.push_back (test_ll);
                 }
               std::cout << std::endl;
 

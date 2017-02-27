@@ -26,7 +26,6 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "dataset.h"
 
-
 class bernoulli
 {
   std::vector<std::vector<double>> _log_thetas;

@@ -41,6 +41,7 @@ class params
   bool ensemble;
   unsigned int max_components;
   std::string leaf_distribution;
+  unsigned int max_components_bmix;
 
   friend std::ostream & operator<< (std::ostream & os, const params &);
 };

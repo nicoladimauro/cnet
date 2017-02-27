@@ -38,7 +38,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utils.h"
 #include "globals.h"
 
-template < class D > class cnet
+template < class D >
+class cnet
 {
  public:
   cnet ();

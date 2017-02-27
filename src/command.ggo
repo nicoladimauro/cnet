@@ -14,6 +14,7 @@ option "model" - "The model to use" string optional default="cnet" values="cnet"
 option "option-length" - "The number of or nodes in the option nodes" int optional multiple(1-) default="3"
 option "ensemble" - "Whether to build an ensemble model" flag off
 option "k" - "The number of ensemble components" int optional default="5" dependon="ensemble"
-option "leaf-distribution" - "Distribution for the leaf node" string optional default="cltree" values ="cltree","bernoulli","mix-bernoulli"
+option "leaf-distribution" - "Distribution for the leaf node" string optional default="cltree" values="cltree","bernoulli","mix-bernoulli"
+option "kbm" - "The number of ensemble components for bernoulli mixture" int optional default="5"
 option "seed" - "Seed for the random generator" optional int default="117"
 option "verbose" - "Verbosity flag" flag off
