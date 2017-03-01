@@ -240,9 +240,17 @@ main (int argc, char **argv)
                   // setting the max for the log sum exp trick to the first component value
                   if (nc == 0)
                     max_train_ll = c_ll;
+                  for (unsigned inst = 0; inst < train_data.shape[0]; inst++)
+                    if (max_train_ll[inst]<-100)
+                      max_train_ll[inst] = -100;
                   double train_local_ll = 0;
                   for (unsigned inst = 0; inst < train_data.shape[0]; inst++)
                     {
+                      if (c_ll[inst] > max_train_ll[inst])
+                        {
+                          global_train_lls[inst] = global_train_lls[inst] / exp(max_train_ll[inst]) * exp(c_ll[inst]);
+                          max_train_ll[inst] = c_ll[inst];
+                        }
                       global_train_lls[inst] += exp (c_ll[inst] - max_train_ll[inst]);
                       train_local_ll += max_train_ll[inst] - log ((double) nc + 1) + log (global_train_lls[inst]);
                     }
