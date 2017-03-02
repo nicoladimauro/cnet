@@ -38,6 +38,10 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utils.h"
 #include "globals.h"
 
+#define LEAF_DISTRIBUTION_TREE 0
+#define LEAF_DISTRIBUTION_BERNOULLI 1
+#define LEAF_DISTRIBUTION_MIX_BERNOULLI 2
+
 template < class D >
 class cnet
 {
@@ -54,9 +58,35 @@ class cnet
   bool is_pdf ();
  protected:
   std::shared_ptr < node > _root;
+  unsigned _leaf_distribution;
+
   bool make_or_node (dataset &, std::shared_ptr < leaf_node < D > >, double, double &, double &,
                      std::shared_ptr < leaf_node < D > >&, std::shared_ptr < leaf_node < D > >&, double);
+  std::shared_ptr <D> make_leaf_node();
 };
+
+// constructor specialization for different kind of leaf distribution
+template<>
+cnet<cltree>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_TREE) {};
+
+template<>
+cnet<bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_BERNOULLI) {};
+
+template<>
+cnet<mix_bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_MIX_BERNOULLI) {};
+
+template< class D>
+std::shared_ptr < D >
+cnet<D>::make_leaf_node(){
+  return std::make_shared < D > ();
+}
+
+// template specialization for leaf nodes with mob distribution
+template<>
+std::shared_ptr<mix_bernoulli>
+cnet<mix_bernoulli>::make_leaf_node(){
+  return std::make_shared < mix_bernoulli > (10);
+}
 
 template < class D > class xcnet:public cnet < D >
 {
@@ -154,8 +184,7 @@ template < class D > bool cnet < D >::is_pdf ()
 }
 
 template < class D > void
-cnet <
-D >::compute_stats ()
+cnet <D >::compute_stats ()
 {
   double
     m_depth = 0.0;
@@ -295,7 +324,6 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
         (best_left_data_row_index.size () + best_right_data_row_index.size ());
       right_w = (double) best_right_data_row_index.size () /
         (best_left_data_row_index.size () + best_right_data_row_index.size ());
-
 
       left_tree_node = std::make_shared < leaf_node < D > >(best_left_clt);
       right_tree_node = std::make_shared < leaf_node < D > >(best_right_clt);
