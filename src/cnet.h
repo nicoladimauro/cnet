@@ -46,7 +46,8 @@ template < class D >
 class cnet
 {
  public:
-  cnet ();
+  cnet();
+  cnet (unsigned);
   virtual void fit (dataset & X, paramsexp &);
   virtual std::vector < double >eval (dataset & X);
   int _n_or_nodes = 0;
@@ -59,7 +60,7 @@ class cnet
  protected:
   std::shared_ptr < node > _root;
   unsigned _leaf_distribution;
-
+  unsigned _mob_n_components;
   bool make_or_node (dataset &, std::shared_ptr < leaf_node < D > >, double, double &, double &,
                      std::shared_ptr < leaf_node < D > >&, std::shared_ptr < leaf_node < D > >&, double);
   std::shared_ptr <D> make_leaf_node();
@@ -73,7 +74,8 @@ template<>
 cnet<bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_BERNOULLI) {};
 
 template<>
-cnet<mix_bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_MIX_BERNOULLI) {};
+cnet<mix_bernoulli>::cnet(unsigned mob_n) : _leaf_distribution(LEAF_DISTRIBUTION_MIX_BERNOULLI),
+  _mob_n_components(mob_n) {};
 
 template< class D>
 std::shared_ptr < D >
@@ -85,7 +87,7 @@ cnet<D>::make_leaf_node(){
 template<>
 std::shared_ptr<mix_bernoulli>
 cnet<mix_bernoulli>::make_leaf_node(){
-  return std::make_shared < mix_bernoulli > (10);
+  return std::make_shared < mix_bernoulli > (_mob_n_components);
 }
 
 template < class D > class xcnet:public cnet < D >
