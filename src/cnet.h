@@ -63,7 +63,7 @@ class cnet
   unsigned _mob_n_components;
   bool make_or_node (dataset &, std::shared_ptr < leaf_node < D > >, double, double &, double &,
                      std::shared_ptr < leaf_node < D > >&, std::shared_ptr < leaf_node < D > >&, double);
-  std::shared_ptr <D> make_leaf_node();
+  std::shared_ptr <D> make_leaf_distribution();
 };
 
 // constructor specialization for different kind of leaf distribution
@@ -79,25 +79,24 @@ cnet<bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_BERNOULLI)
   node::init_id_counter ();
 };
 
-
 template<>
-cnet<mix_bernoulli>::cnet(unsigned mob_n) : _leaf_distribution(LEAF_DISTRIBUTION_MIX_BERNOULLI),
+cnet<mix_bernoulli>::cnet(unsigned mob_n) :
+  _leaf_distribution(LEAF_DISTRIBUTION_MIX_BERNOULLI),
   _mob_n_components(mob_n)
 {
   node::init_id_counter ();
 };
 
-
 template< class D>
 std::shared_ptr < D >
-cnet<D>::make_leaf_node(){
+cnet<D>::make_leaf_distribution(){
   return std::make_shared < D > ();
 }
 
 // template specialization for leaf nodes with mob distribution
 template<>
 std::shared_ptr<mix_bernoulli>
-cnet<mix_bernoulli>::make_leaf_node(){
+cnet<mix_bernoulli>::make_leaf_distribution(){
   return std::make_shared < mix_bernoulli > (_mob_n_components);
 }
 
@@ -140,8 +139,7 @@ class optionxcnet:public xcnet < D >
 
 
 template < class D > std::vector < double >
-cnet <
-D >::eval (dataset & X)
+cnet <D >::eval (dataset & X)
 {
   return _root->eval (X);
 }
@@ -236,15 +234,15 @@ cnet <D >::compute_stats ()
 template < class D >
 bool
 cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, double node_ll, double &best_left_ll,
-                          double &best_right_ll, std::shared_ptr < leaf_node < D > >&left_tree_node,
-                          std::shared_ptr < leaf_node < D > >&right_tree_node, double alpha)
+                          double &best_right_ll, std::shared_ptr < leaf_node < D > >&left_leaf_node,
+                          std::shared_ptr < leaf_node < D > >&right_leaf_node, double alpha)
 {
 
   double
     best_ll = node_ll;
 
-  std::shared_ptr < D > best_left_clt;
-  std::shared_ptr < D > best_right_clt;
+  std::shared_ptr < D > best_left_distribution;
+  std::shared_ptr < D > best_right_distribution;
 
   std::vector < int >
     best_left_data_row_index,
@@ -263,10 +261,8 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
     {
       if (n->_scope[i])
         {
-          //          std::shared_ptr < D > left_clt = std::make_shared < D > ();
-          //          std::shared_ptr < D > right_clt = std::make_shared < D > ();
-          std::shared_ptr < D > left_clt = make_leaf_node();
-          std::shared_ptr < D > right_clt = make_leaf_node();
+          std::shared_ptr < D > left_distribution = make_leaf_distribution();
+          std::shared_ptr < D > right_distribution = make_leaf_distribution();
 
           int
             rows_left = 0;
@@ -297,13 +293,13 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
                 scope = n->_scope;
               scope[i] = 0;
 
-              left_clt->fit (X, rows_left, left_data_row_index, scope, n->_scope_length - 1, alpha);
-              right_clt->fit (X, rows_right, right_data_row_index, scope, n->_scope_length - 1, alpha);
+              left_distribution->fit (X, rows_left, left_data_row_index, scope, n->_scope_length - 1, alpha);
+              right_distribution->fit (X, rows_right, right_data_row_index, scope, n->_scope_length - 1, alpha);
 
               double
-                left_ll = mean (left_clt->eval (X, left_data_row_index, scope));
+                left_ll = mean (left_distribution->eval (X, left_data_row_index, scope));
               double
-                right_ll = mean (right_clt->eval (X, right_data_row_index, scope));
+                right_ll = mean (right_distribution->eval (X, right_data_row_index, scope));
               double
                 split_ll = ((left_ll + log ((double) rows_left / (rows_left + rows_right))) * rows_left +
                             (right_ll + log ((double) rows_right / (rows_left + rows_right))) * rows_right) /
@@ -314,8 +310,8 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
                   best_left_ll = left_ll;
                   best_right_ll = right_ll;
                   best_ll = split_ll;
-                  best_left_clt = left_clt;
-                  best_right_clt = right_clt;
+                  best_left_distribution = left_distribution;
+                  best_right_distribution = right_distribution;
                   best_right_data_row_index = right_data_row_index;
                   best_left_data_row_index = left_data_row_index;
                   split_feature = i;
@@ -342,27 +338,27 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
       right_w = (double) best_right_data_row_index.size () /
         (best_left_data_row_index.size () + best_right_data_row_index.size ());
 
-      left_tree_node = std::make_shared < leaf_node < D > >(best_left_clt);
-      right_tree_node = std::make_shared < leaf_node < D > >(best_right_clt);
+      left_leaf_node = std::make_shared < leaf_node < D > >(best_left_distribution);
+      right_leaf_node = std::make_shared < leaf_node < D > >(best_right_distribution);
 
-      left_tree_node->_scope = scope_split;
-      right_tree_node->_scope = scope_split;
-      left_tree_node->_scope_length = n->_scope_length - 1;
-      right_tree_node->_scope_length = n->_scope_length - 1;
+      left_leaf_node->_scope = scope_split;
+      right_leaf_node->_scope = scope_split;
+      left_leaf_node->_scope_length = n->_scope_length - 1;
+      right_leaf_node->_scope_length = n->_scope_length - 1;
 
 
-      left_tree_node->_row_idx = best_left_data_row_index;
-      right_tree_node->_row_idx = best_right_data_row_index;
+      left_leaf_node->_row_idx = best_left_data_row_index;
+      right_leaf_node->_row_idx = best_right_data_row_index;
 
-      left_tree_node->_depth = n->_depth + 1;
-      right_tree_node->_depth = n->_depth + 1;
+      left_leaf_node->_depth = n->_depth + 1;
+      right_leaf_node->_depth = n->_depth + 1;
 
       if (n == this->_root)
         {
           this->_root =
-            std::make_shared < or_node < D > >(left_tree_node, right_tree_node, left_w, right_w, split_feature);
-          left_tree_node->_parent = this->_root;
-          right_tree_node->_parent = this->_root;
+            std::make_shared < or_node < D > >(left_leaf_node, right_leaf_node, left_w, right_w, split_feature);
+          left_leaf_node->_parent = this->_root;
+          right_leaf_node->_parent = this->_root;
         }
       else
         {
@@ -370,12 +366,12 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
             {
               std::static_pointer_cast < or_node < D > >
                 (n->_parent.lock ())->set_left_child (std::make_shared < or_node < D > >
-                                                      (left_tree_node, right_tree_node,
+                                                      (left_leaf_node, right_leaf_node,
                                                        left_w, right_w, split_feature));
 
-              left_tree_node->_parent =
+              left_leaf_node->_parent =
                 std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_left_child ();
-              right_tree_node->_parent =
+              right_leaf_node->_parent =
                 std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_left_child ();
               std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
             }
@@ -383,12 +379,12 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
             {
               std::static_pointer_cast < or_node < D > >
                 (n->_parent.lock ())->set_right_child (std::make_shared < or_node < D > >
-                                                       (left_tree_node, right_tree_node,
+                                                       (left_leaf_node, right_leaf_node,
                                                         left_w, right_w, split_feature));
 
-              left_tree_node->_parent =
+              left_leaf_node->_parent =
                 std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_right_child ();
-              right_tree_node->_parent =
+              right_leaf_node->_parent =
                 std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_right_child ();
               std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
             }
@@ -409,14 +405,14 @@ cnet <D >::fit (dataset & X, paramsexp & input_parameters)
 
   std::map < int, double >
     node_training_ll;
-  //  std::shared_ptr < D > root_cltree (new D ());
-  std::shared_ptr < D > root_cltree = make_leaf_node();
+
+  std::shared_ptr < D > root_distribution = make_leaf_distribution();
   std::shared_ptr < leaf_node < D > >n;
 
-  root_cltree->fit (X, input_parameters.alpha);
-  this->_root = std::make_shared < leaf_node < D > >(root_cltree);
+  root_distribution->fit (X, input_parameters.alpha);
+  this->_root = std::make_shared < leaf_node < D > >(root_distribution);
 
-  node_training_ll[this->_root->get_id ()] = mean (root_cltree->eval (X));
+  node_training_ll[this->_root->get_id ()] = mean (root_distribution->eval (X));
 
   if (verbose)
     std::cout << "Fitting the starting tree... ";
@@ -499,11 +495,6 @@ xcnet < D >::make_or_node (dataset & X,
         splitFeature = candidate_splits.back ();
       candidate_splits.pop_back ();
 
-      //      std::shared_ptr < D > left_clt (new D);
-      //      std::shared_ptr < D > right_clt (new D);
-      //      std::shared_ptr < D > left_clt = make_leaf_node();
-      //      std::shared_ptr < D > right_clt = make_leaf_node();
-
       int
         rows_left = 0;
       int
@@ -545,33 +536,31 @@ xcnet < D >::make_or_node (dataset & X,
           left_w = (double) rows_left / (rows_left + rows_right);
           right_w = (double) rows_right / (rows_left + rows_right);
 
-          //          std::shared_ptr < D > left_clt (new D);
-          //          std::shared_ptr < D > right_clt (new D);
-          std::shared_ptr < D > left_clt = this->make_leaf_node();
-          std::shared_ptr < D > right_clt = this->make_leaf_node();
+          std::shared_ptr < D > left_distribution = this->make_leaf_distribution();
+          std::shared_ptr < D > right_distribution = this->make_leaf_distribution();
 
-          std::shared_ptr < leaf_node < D > >left_tree_node (new leaf_node < D > (left_clt));
-          std::shared_ptr < leaf_node < D > >right_tree_node (new leaf_node < D > (right_clt));
-          left_tree_node->_scope = children_scope;
-          right_tree_node->_scope = children_scope;
-          left_tree_node->_scope_length = n->_scope_length - 1;
-          right_tree_node->_scope_length = n->_scope_length - 1;
-          left_tree_node->_row_idx = left_data_row_index;
-          right_tree_node->_row_idx = right_data_row_index;
+          std::shared_ptr < leaf_node < D > >left_leaf_node (new leaf_node < D > (left_distribution));
+          std::shared_ptr < leaf_node < D > >right_leaf_node (new leaf_node < D > (right_distribution));
+          left_leaf_node->_scope = children_scope;
+          right_leaf_node->_scope = children_scope;
+          left_leaf_node->_scope_length = n->_scope_length - 1;
+          right_leaf_node->_scope_length = n->_scope_length - 1;
+          left_leaf_node->_row_idx = left_data_row_index;
+          right_leaf_node->_row_idx = right_data_row_index;
 
-          left_tree_node->_depth = n->_depth + 1;
-          right_tree_node->_depth = n->_depth + 1;
+          left_leaf_node->_depth = n->_depth + 1;
+          right_leaf_node->_depth = n->_depth + 1;
 
-          left_node = left_tree_node;
-          right_node = right_tree_node;
+          left_node = left_leaf_node;
+          right_node = right_leaf_node;
 
           if (n == this->_root)
             {
               this->_root =
                 std::make_shared < or_node < D > >
-                (or_node < D > (left_tree_node, right_tree_node, left_w, right_w, splitFeature));
-              left_tree_node->_parent = this->_root;
-              right_tree_node->_parent = this->_root;
+                (or_node < D > (left_leaf_node, right_leaf_node, left_w, right_w, splitFeature));
+              left_leaf_node->_parent = this->_root;
+              right_leaf_node->_parent = this->_root;
             }
           else
             {
@@ -579,11 +568,11 @@ xcnet < D >::make_or_node (dataset & X,
                 {
                   std::static_pointer_cast < or_node < D > >
                     (n->_parent.lock ())->set_left_child (std::make_shared < or_node < D > >
-                                                          (or_node < D > (left_tree_node, right_tree_node,
+                                                          (or_node < D > (left_leaf_node, right_leaf_node,
                                                                           left_w, right_w, splitFeature)));
-                  left_tree_node->_parent =
+                  left_leaf_node->_parent =
                     std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_left_child ();
-                  right_tree_node->_parent =
+                  right_leaf_node->_parent =
                     std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_left_child ();
                   std::static_pointer_cast < or_node < D > >
                     (n->_parent.lock ())->get_left_child ()->_parent = n->_parent;
@@ -592,12 +581,12 @@ xcnet < D >::make_or_node (dataset & X,
                 {
                   std::static_pointer_cast < or_node < D > >
                     (n->_parent.lock ())->set_right_child (std::make_shared < or_node < D > >
-                                                           (or_node < D > (left_tree_node, right_tree_node,
+                                                           (or_node < D > (left_leaf_node, right_leaf_node,
                                                                            left_w, right_w, splitFeature)));
 
-                  left_tree_node->_parent =
+                  left_leaf_node->_parent =
                     std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_right_child ();
-                  right_tree_node->_parent =
+                  right_leaf_node->_parent =
                     std::static_pointer_cast < or_node < D > >(n->_parent.lock ())->get_right_child ();
                   std::static_pointer_cast < or_node < D > >
                     (n->_parent.lock ())->get_right_child ()->_parent = n->_parent;
@@ -620,9 +609,8 @@ xcnet <D >::fit (dataset & X, paramsexp & input_parameters)
     min_features = input_parameters.min_features;
 
   // initially set the root of the network being a tree_node
-  //  std::shared_ptr < D > root_cltree (new D);
-  std::shared_ptr < D > root_cltree  = this->make_leaf_node();
-  this->_root = std::make_shared < leaf_node < D > >(root_cltree);
+  std::shared_ptr < D > root_distribution  = this->make_leaf_distribution();
+  this->_root = std::make_shared < leaf_node < D > >(root_distribution);
 
   for (unsigned int i = 0; i < X.shape[1]; i++)
     this->_root->_scope.push_back (1);
@@ -686,8 +674,8 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
                                     std::vector < double >&best_right_ll, double alpha)
 {
 
-  std::vector < std::shared_ptr < D > >best_left_clt;
-  std::vector < std::shared_ptr < D > >best_right_clt;
+  std::vector < std::shared_ptr < D > >best_left_distribution;
+  std::vector < std::shared_ptr < D > >best_right_distribution;
 
   std::vector < double >
     best_ll;
@@ -711,10 +699,8 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
       if (n->_scope[i])
         {
 
-          //          std::shared_ptr < D > left_clt (new D);
-          //          std::shared_ptr < D > right_clt (new D);
-          std::shared_ptr < D > left_clt = this->make_leaf_node();
-          std::shared_ptr < D > right_clt = this->make_leaf_node();
+          std::shared_ptr < D > left_distribution = this->make_leaf_distribution();
+          std::shared_ptr < D > right_distribution = this->make_leaf_distribution();
 
           int
             rows_left = 0;
@@ -745,13 +731,13 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
                 scope = n->_scope;
               scope[i] = 0;
 
-              left_clt->fit (X, rows_left, left_data_row_index, scope, n->_scope_length - 1, alpha);
-              right_clt->fit (X, rows_right, right_data_row_index, scope, n->_scope_length - 1, alpha);
+              left_distribution->fit (X, rows_left, left_data_row_index, scope, n->_scope_length - 1, alpha);
+              right_distribution->fit (X, rows_right, right_data_row_index, scope, n->_scope_length - 1, alpha);
 
               double
-                left_ll = mean (left_clt->eval (X, left_data_row_index, scope));
+                left_ll = mean (left_distribution->eval (X, left_data_row_index, scope));
               double
-                right_ll = mean (right_clt->eval (X, right_data_row_index, scope));
+                right_ll = mean (right_distribution->eval (X, right_data_row_index, scope));
               double
                 split_ll =
                 ((left_ll +
@@ -760,10 +746,10 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
                               log ((double) rows_right /
                                    (rows_left + rows_right))) * rows_right) / (rows_left + rows_right);
 
-              if (best_left_clt.size () < option_node_length)
+              if (best_left_distribution.size () < option_node_length)
                 {
-                  best_left_clt.push_back (left_clt);
-                  best_right_clt.push_back (right_clt);
+                  best_left_distribution.push_back (left_distribution);
+                  best_right_distribution.push_back (right_distribution);
                   best_left_ll.push_back (left_ll);
                   best_right_ll.push_back (right_ll);
                   best_ll.push_back (split_ll);
@@ -784,8 +770,8 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
                         minPos = k;
                         minValue = best_ll[k];
                       }
-                  best_left_clt[minPos] = left_clt;
-                  best_right_clt[minPos] = right_clt;
+                  best_left_distribution[minPos] = left_distribution;
+                  best_right_distribution[minPos] = right_distribution;
                   best_left_ll[minPos] = left_ll;
                   best_right_ll[minPos] = right_ll;
                   best_ll[minPos] = split_ll;
@@ -826,29 +812,29 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
         (double) best_right_data_row_index[k].size () /
         (best_left_data_row_index[k].size () + best_right_data_row_index[k].size ());
 
-      std::shared_ptr < leaf_node < D > >left_tree_node (new leaf_node < D > (best_left_clt[k]));
-      std::shared_ptr < leaf_node < D > >right_tree_node (new leaf_node < D > (best_right_clt[k]));
+      std::shared_ptr < leaf_node < D > >left_leaf_node (new leaf_node < D > (best_left_distribution[k]));
+      std::shared_ptr < leaf_node < D > >right_leaf_node (new leaf_node < D > (best_right_distribution[k]));
 
-      left_nodes.push_back (left_tree_node);
-      right_nodes.push_back (right_tree_node);
+      left_nodes.push_back (left_leaf_node);
+      right_nodes.push_back (right_leaf_node);
 
-      left_tree_node->_scope = scope_split[k];
-      right_tree_node->_scope = scope_split[k];
-      left_tree_node->_scope_length = n->_scope_length - 1;
-      right_tree_node->_scope_length = n->_scope_length - 1;
+      left_leaf_node->_scope = scope_split[k];
+      right_leaf_node->_scope = scope_split[k];
+      left_leaf_node->_scope_length = n->_scope_length - 1;
+      right_leaf_node->_scope_length = n->_scope_length - 1;
 
 
-      left_tree_node->_row_idx = best_left_data_row_index[k];
-      right_tree_node->_row_idx = best_right_data_row_index[k];
+      left_leaf_node->_row_idx = best_left_data_row_index[k];
+      right_leaf_node->_row_idx = best_right_data_row_index[k];
 
-      left_tree_node->_depth = n->_depth + 1;
-      right_tree_node->_depth = n->_depth + 1;
+      left_leaf_node->_depth = n->_depth + 1;
+      right_leaf_node->_depth = n->_depth + 1;
 
       weights.push_back ((double) 1 / split_feature.size ());
       or_nodes.push_back (std::make_shared < or_node < D > >
-                          (or_node < D > (left_tree_node, right_tree_node, left_w, right_w, split_feature[k])));
-      left_tree_node->_parent = or_nodes.back ();
-      right_tree_node->_parent = or_nodes.back ();
+                          (or_node < D > (left_leaf_node, right_leaf_node, left_w, right_w, split_feature[k])));
+      left_leaf_node->_parent = or_nodes.back ();
+      right_leaf_node->_parent = or_nodes.back ();
     }
 
   if (n == this->_root)
@@ -898,13 +884,13 @@ optioncnet <D >::fit (dataset & X, paramsexp & input_parameters)
     min_features = input_parameters.min_features;
   std::map < int, double >
     node_training_ll;
-  //  std::shared_ptr < D > root_cltree (new D);
-  std::shared_ptr < D > root_cltree = this->make_leaf_node();
+
+  std::shared_ptr < D > root_distribution = this->make_leaf_distribution();
   std::shared_ptr < leaf_node < D > >n;
 
-  root_cltree->fit (X, input_parameters.alpha);
-  this->_root = std::make_shared < leaf_node < D > >(root_cltree);
-  node_training_ll[this->_root->get_id ()] = mean (root_cltree->eval (X));
+  root_distribution->fit (X, input_parameters.alpha);
+  this->_root = std::make_shared < leaf_node < D > >(root_distribution);
+  node_training_ll[this->_root->get_id ()] = mean (root_distribution->eval (X));
 
   if (verbose)
     std::cout << "Fitting the starting tree... ";
@@ -997,8 +983,8 @@ optionxcnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < 
                                      std::vector < double >&best_right_ll, double alpha)
 {
 
-  std::vector < std::shared_ptr < D > >best_left_clt;
-  std::vector < std::shared_ptr < D > >best_right_clt;
+  std::vector < std::shared_ptr < D > >best_left_distribution;
+  std::vector < std::shared_ptr < D > >best_right_distribution;
 
   std::vector < double >
     best_ll;
@@ -1036,10 +1022,8 @@ optionxcnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < 
           if (n->_scope[i])
             {
 
-              //              std::shared_ptr < D > left_clt (new D);
-              //              std::shared_ptr < D > right_clt (new D);
-              std::shared_ptr < D > left_clt = this->make_leaf_node();
-              std::shared_ptr < D > right_clt = this->make_leaf_node();
+              std::shared_ptr < D > left_distribution = this->make_leaf_distribution();
+              std::shared_ptr < D > right_distribution = this->make_leaf_distribution();
 
               int
                 rows_left = 0;
@@ -1069,10 +1053,10 @@ optionxcnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < 
                     scope = n->_scope;
                   scope[i] = 0;
 
-                  if (best_left_clt.size () < option_node_length)
+                  if (best_left_distribution.size () < option_node_length)
                     {
-                      best_left_clt.push_back (left_clt);
-                      best_right_clt.push_back (right_clt);
+                      best_left_distribution.push_back (left_distribution);
+                      best_right_distribution.push_back (right_distribution);
                       best_left_data_row_index.push_back (left_data_row_index);
                       best_right_data_row_index.push_back (right_data_row_index);
                       split_feature.push_back (i);
@@ -1144,29 +1128,29 @@ optionxcnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < 
         (double) best_right_data_row_index[k].size () /
         (best_left_data_row_index[k].size () + best_right_data_row_index[k].size ());
 
-      std::shared_ptr < leaf_node < D > >left_tree_node (new leaf_node < D > (best_left_clt[k]));
-      std::shared_ptr < leaf_node < D > >right_tree_node (new leaf_node < D > (best_right_clt[k]));
+      std::shared_ptr < leaf_node < D > >left_leaf_node (new leaf_node < D > (best_left_distribution[k]));
+      std::shared_ptr < leaf_node < D > >right_leaf_node (new leaf_node < D > (best_right_distribution[k]));
 
-      left_nodes.push_back (left_tree_node);
-      right_nodes.push_back (right_tree_node);
+      left_nodes.push_back (left_leaf_node);
+      right_nodes.push_back (right_leaf_node);
 
-      left_tree_node->_scope = scope_split[k];
-      right_tree_node->_scope = scope_split[k];
-      left_tree_node->_scope_length = n->_scope_length - 1;
-      right_tree_node->_scope_length = n->_scope_length - 1;
+      left_leaf_node->_scope = scope_split[k];
+      right_leaf_node->_scope = scope_split[k];
+      left_leaf_node->_scope_length = n->_scope_length - 1;
+      right_leaf_node->_scope_length = n->_scope_length - 1;
 
 
-      left_tree_node->_row_idx = best_left_data_row_index[k];
-      right_tree_node->_row_idx = best_right_data_row_index[k];
+      left_leaf_node->_row_idx = best_left_data_row_index[k];
+      right_leaf_node->_row_idx = best_right_data_row_index[k];
 
-      left_tree_node->_depth = n->_depth + 1;
-      right_tree_node->_depth = n->_depth + 1;
+      left_leaf_node->_depth = n->_depth + 1;
+      right_leaf_node->_depth = n->_depth + 1;
 
       weights.push_back ((double) 1 / split_feature.size ());
       or_nodes.push_back (std::make_shared < or_node < D > >
-                          (or_node < D > (left_tree_node, right_tree_node, left_w, right_w, split_feature[k])));
-      left_tree_node->_parent = or_nodes.back ();
-      right_tree_node->_parent = or_nodes.back ();
+                          (or_node < D > (left_leaf_node, right_leaf_node, left_w, right_w, split_feature[k])));
+      left_leaf_node->_parent = or_nodes.back ();
+      right_leaf_node->_parent = or_nodes.back ();
     }
 
   if (n == this->_root)
@@ -1220,9 +1204,9 @@ optionxcnet <D >::fit (dataset & X, paramsexp & input_parameters)
     std::cout << "Random CNET ... " << std::endl;
 
   // initially set the root of the network being a tree_node
-  //  std::shared_ptr < D > root_cltree (new D);
-  std::shared_ptr < D > root_cltree = this->make_leaf_node();
-  this->_root = std::make_shared < leaf_node < D > >(root_cltree);
+
+  std::shared_ptr < D > root_distribution = this->make_leaf_distribution();
+  this->_root = std::make_shared < leaf_node < D > >(root_distribution);
 
   for (unsigned int i = 0; i < X.shape[1]; i++)
     this->_root->_scope.push_back (1);
