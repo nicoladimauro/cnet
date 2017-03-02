@@ -259,22 +259,26 @@ main (int argc, char **argv)
 
                           if (input_parameters.model == "cnet")
                             {
-                              M_mix_bernoulli = std::make_shared < cnet < mix_bernoulli > > ();
+                              M_mix_bernoulli = std::make_shared < cnet < mix_bernoulli > >
+                                (input_parameters.max_components_bmix);
                               M_mix_bernoulli->fit (train_data, pars);
                             }
                           if (input_parameters.model == "xcnet")
                             {
-                              M_mix_bernoulli = std::make_shared < xcnet < mix_bernoulli > >();
+                              M_mix_bernoulli = std::make_shared < xcnet < mix_bernoulli > >
+                                (input_parameters.max_components_bmix);
                               M_mix_bernoulli->fit (train_data, pars);
                             }
                           if (input_parameters.model == "optioncnet")
                             {
-                              M_mix_bernoulli = std::make_shared < optioncnet < mix_bernoulli > >();
+                              M_mix_bernoulli = std::make_shared < optioncnet < mix_bernoulli > >
+                                (input_parameters.max_components_bmix);
                               M_mix_bernoulli->fit (train_data, pars);
                             }
                           if (input_parameters.model == "optionxcnet")
                             {
-                              M_mix_bernoulli = std::make_shared < optionxcnet < mix_bernoulli > >();
+                              M_mix_bernoulli = std::make_shared < optionxcnet < mix_bernoulli > >
+                                (input_parameters.max_components_bmix);
                               M_mix_bernoulli->fit (train_data, pars);
                             }
                         }

@@ -121,7 +121,7 @@ main (int argc, char **argv)
   const int dir_err = std::system (system_command.c_str ());
   if (-1 == dir_err)
     {
-      printf ("Error creating directory!n");
+      printf ("Error creating directory!\n");
       exit (1);
     }
 
@@ -176,43 +176,49 @@ main (int argc, char **argv)
               if (input_parameters.leaf_distribution == "cltree")
                 {
                   if (input_parameters.model == "cnet")
-                    C = std::make_shared < enscnet < cnet < cltree >>> (input_parameters.max_components, true);
+                    C = std::make_shared < enscnet < cnet < cltree >>>
+                      (input_parameters.max_components, true, input_parameters.max_components_bmix);
                   if (input_parameters.model == "xcnet")
-                    C = std::make_shared < enscnet < xcnet < cltree >> >(input_parameters.max_components, false);
+                    C = std::make_shared < enscnet < xcnet < cltree >>>
+                      (input_parameters.max_components, false, input_parameters.max_components_bmix);
                   if (input_parameters.model == "optioncnet")
-                    C = std::make_shared < enscnet < optioncnet < cltree >> >(input_parameters.max_components, true);
+                    C = std::make_shared < enscnet < optioncnet < cltree >>>
+                      (input_parameters.max_components, true, input_parameters.max_components_bmix);
                   if (input_parameters.model == "optionxcnet")
-                    C = std::make_shared < enscnet < optionxcnet < cltree >> >(input_parameters.max_components, false);
+                    C = std::make_shared < enscnet < optionxcnet < cltree >>>
+                      (input_parameters.max_components, false, input_parameters.max_components_bmix);
                 }
               else
                 if (input_parameters.leaf_distribution == "bernoulli")
                   {
                     if (input_parameters.model == "cnet")
-                      C = std::make_shared < enscnet < cnet < bernoulli >>> (input_parameters.max_components, true);
+                      C = std::make_shared < enscnet < cnet < bernoulli >>>
+                        (input_parameters.max_components, true, input_parameters.max_components_bmix);
                     if (input_parameters.model == "xcnet")
-                      C = std::make_shared < enscnet < xcnet < bernoulli >> >(input_parameters.max_components, false);
+                      C = std::make_shared < enscnet < xcnet < bernoulli >>>
+                        (input_parameters.max_components, false, input_parameters.max_components_bmix);
                     if (input_parameters.model == "optioncnet")
-                      C = std::make_shared < enscnet < optioncnet < bernoulli >> >
-                        (input_parameters.max_components, true);
+                      C = std::make_shared < enscnet < optioncnet < bernoulli >>>
+                        (input_parameters.max_components, true, input_parameters.max_components_bmix);
                     if (input_parameters.model == "optionxcnet")
-                      C = std::make_shared < enscnet < optionxcnet < bernoulli >> >
-                        (input_parameters.max_components, false);
+                      C = std::make_shared < enscnet < optionxcnet < bernoulli >>>
+                        (input_parameters.max_components, false, input_parameters.max_components_bmix);
                   }
                 else
                   if (input_parameters.leaf_distribution == "mix-bernoulli")
                     {
                       if (input_parameters.model == "cnet")
                         C = std::make_shared < enscnet < cnet < mix_bernoulli >>>
-                          (input_parameters.max_components, true);
+                          (input_parameters.max_components, true, input_parameters.max_components_bmix);
                       if (input_parameters.model == "xcnet")
-                        C = std::make_shared < enscnet < xcnet < mix_bernoulli >> >
-                          (input_parameters.max_components, false);
+                        C = std::make_shared < enscnet < xcnet < mix_bernoulli >>>
+                          (input_parameters.max_components, false, input_parameters.max_components_bmix);
                       if (input_parameters.model == "optioncnet")
-                        C = std::make_shared < enscnet < optioncnet < mix_bernoulli >> >
-                          (input_parameters.max_components, true);
+                        C = std::make_shared < enscnet < optioncnet < mix_bernoulli >>>
+                          (input_parameters.max_components, true, input_parameters.max_components_bmix);
                       if (input_parameters.model == "optionxcnet")
-                        C = std::make_shared < enscnet < optionxcnet < mix_bernoulli >> >
-                          (input_parameters.max_components, false);
+                        C = std::make_shared < enscnet < optionxcnet < mix_bernoulli >>>
+                          (input_parameters.max_components, false, input_parameters.max_components_bmix);
                     }
 
               auto t1 = std::chrono::high_resolution_clock::now ();

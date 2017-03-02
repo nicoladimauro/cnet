@@ -30,7 +30,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "dataset.h"
 #include "params.h"
 #include "globals.h"
-
+#include "cnet.h"
 
 class ensemble
 {
@@ -50,13 +50,13 @@ template < class M > class enscnet:public ensemble
   bool _bootstraps;
  public:
   bool is_pdf (int);
-  enscnet (int, bool bootstraps = true);
+  enscnet (int, bool bootstraps = true, unsigned n_mob=10);
   void fit (dataset &, paramsexp &);
   std::vector < std::vector < double >>eval (dataset &);
   std::vector < double >eval (dataset &, int);
 };
 
-template < class M > enscnet < M >::enscnet (int n_models, bool bootstraps)
+template < class M > enscnet < M >::enscnet (int n_models, bool bootstraps, unsigned n_mob)
 {
   _n_models = n_models;
   _bootstraps = bootstraps;
@@ -65,6 +65,51 @@ template < class M > enscnet < M >::enscnet (int n_models, bool bootstraps)
       _models.push_back (std::make_shared < M > (M ()));
     }
 }
+
+template <>
+enscnet <cnet<mix_bernoulli>>::enscnet (int n_models, bool bootstraps, unsigned n_mob)
+{
+  _n_models = n_models;
+  _bootstraps = bootstraps;
+  for (unsigned int i = 0; i < n_models; i++)
+    {
+      _models.push_back (std::make_shared < cnet<mix_bernoulli> > (cnet<mix_bernoulli> (n_mob)));
+    }
+}
+
+template <>
+enscnet <xcnet<mix_bernoulli>>::enscnet (int n_models, bool bootstraps, unsigned n_mob)
+{
+  _n_models = n_models;
+  _bootstraps = bootstraps;
+  for (unsigned int i = 0; i < n_models; i++)
+    {
+      _models.push_back (std::make_shared < xcnet<mix_bernoulli> > (xcnet<mix_bernoulli> (n_mob)));
+    }
+}
+
+template <>
+enscnet <optioncnet<mix_bernoulli>>::enscnet (int n_models, bool bootstraps, unsigned n_mob)
+{
+  _n_models = n_models;
+  _bootstraps = bootstraps;
+  for (unsigned int i = 0; i < n_models; i++)
+    {
+      _models.push_back (std::make_shared < optioncnet<mix_bernoulli> > (optioncnet<mix_bernoulli> (n_mob)));
+    }
+}
+
+template <>
+enscnet <optionxcnet<mix_bernoulli>>::enscnet (int n_models, bool bootstraps, unsigned n_mob)
+{
+  _n_models = n_models;
+  _bootstraps = bootstraps;
+  for (unsigned int i = 0; i < n_models; i++)
+    {
+      _models.push_back (std::make_shared < optionxcnet<mix_bernoulli> > (optionxcnet<mix_bernoulli> (n_mob)));
+    }
+}
+
 
 template < class M > void enscnet < M >::fit (dataset & X, paramsexp & input_parameters)
 {

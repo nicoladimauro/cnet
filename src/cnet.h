@@ -68,14 +68,25 @@ class cnet
 
 // constructor specialization for different kind of leaf distribution
 template<>
-cnet<cltree>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_TREE) {};
+cnet<cltree>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_TREE)
+{
+  node::init_id_counter ();
+};
 
 template<>
-cnet<bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_BERNOULLI) {};
+cnet<bernoulli>::cnet() : _leaf_distribution(LEAF_DISTRIBUTION_BERNOULLI)
+{
+  node::init_id_counter ();
+};
+
 
 template<>
 cnet<mix_bernoulli>::cnet(unsigned mob_n) : _leaf_distribution(LEAF_DISTRIBUTION_MIX_BERNOULLI),
-  _mob_n_components(mob_n) {};
+  _mob_n_components(mob_n)
+{
+  node::init_id_counter ();
+};
+
 
 template< class D>
 std::shared_ptr < D >
@@ -90,8 +101,10 @@ cnet<mix_bernoulli>::make_leaf_node(){
   return std::make_shared < mix_bernoulli > (_mob_n_components);
 }
 
-template < class D > class xcnet:public cnet < D >
+template < class D >
+class xcnet:public cnet < D >
 {
+  using cnet<D>::cnet; // Inheriting all the constructors from the base class cnet
  public:
   void fit (dataset & X, paramsexp &);
  protected:
@@ -99,8 +112,10 @@ template < class D > class xcnet:public cnet < D >
                      std::shared_ptr < leaf_node < D > >&, std::shared_ptr < leaf_node < D > >&, double);
 };
 
-template < class D > class optioncnet:public cnet < D >
+template < class D >
+class optioncnet:public cnet < D >
 {
+  using cnet<D>::cnet; // Inheriting all the constructors from the base class cnet
  public:
   void fit (dataset & X, paramsexp &);
  protected:
@@ -110,8 +125,10 @@ template < class D > class optioncnet:public cnet < D >
                          std::vector < double >&, std::vector < double >&, double);
 };
 
-template < class D > class optionxcnet:public xcnet < D >
+template < class D >
+class optionxcnet:public xcnet < D >
 {
+  using xcnet<D>::xcnet; // Inheriting all the constructors from the base class xcnet
  public:
   void fit (dataset & X, paramsexp &);
  protected:
@@ -121,10 +138,6 @@ template < class D > class optionxcnet:public xcnet < D >
                          std::vector < double >&, std::vector < double >&, double);
 };
 
-template < class D > cnet < D >::cnet ()
-{
-  node::init_id_counter ();
-}
 
 template < class D > std::vector < double >
 cnet <
