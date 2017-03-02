@@ -141,8 +141,8 @@ main (int argc, char **argv)
   output << ";; " << input_parameters;
   output << ";; " << std::endl;
   output <<
-    ";; components, min_instances, min_features, alpha, learn_time_m, learn_time_s, eval_time_m, eval_time_s," <<
-    " train_ll_m, train_ll_s, valid_ll_m, valid_ll_s, test_ll_m, test_ll_s" << std::endl;
+    ";; components, min_instances, min_features, alpha, learn_time, eval_time," <<
+    " train_ll, valid_ll, test_ll" << std::endl;
 
   for (unsigned int mi = 0; mi < input_parameters.min_instances.size (); mi++)
     {
