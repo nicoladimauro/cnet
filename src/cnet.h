@@ -263,8 +263,10 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
     {
       if (n->_scope[i])
         {
-          std::shared_ptr < D > left_clt = std::make_shared < D > ();
-          std::shared_ptr < D > right_clt = std::make_shared < D > ();
+          //          std::shared_ptr < D > left_clt = std::make_shared < D > ();
+          //          std::shared_ptr < D > right_clt = std::make_shared < D > ();
+          std::shared_ptr < D > left_clt = make_leaf_node();
+          std::shared_ptr < D > right_clt = make_leaf_node();
 
           int
             rows_left = 0;
@@ -397,8 +399,7 @@ cnet < D >::make_or_node (dataset & X, std::shared_ptr < leaf_node < D > >n, dou
 }
 
 template < class D > void
-cnet <
-D >::fit (dataset & X, paramsexp & input_parameters)
+cnet <D >::fit (dataset & X, paramsexp & input_parameters)
 {
   unsigned int
     min_instances = input_parameters.min_instances;
@@ -408,7 +409,8 @@ D >::fit (dataset & X, paramsexp & input_parameters)
 
   std::map < int, double >
     node_training_ll;
-  std::shared_ptr < D > root_cltree (new D ());
+  //  std::shared_ptr < D > root_cltree (new D ());
+  std::shared_ptr < D > root_cltree = make_leaf_node();
   std::shared_ptr < leaf_node < D > >n;
 
   root_cltree->fit (X, input_parameters.alpha);
@@ -497,8 +499,10 @@ xcnet < D >::make_or_node (dataset & X,
         splitFeature = candidate_splits.back ();
       candidate_splits.pop_back ();
 
-      std::shared_ptr < D > left_clt (new D);
-      std::shared_ptr < D > right_clt (new D);
+      //      std::shared_ptr < D > left_clt (new D);
+      //      std::shared_ptr < D > right_clt (new D);
+      //      std::shared_ptr < D > left_clt = make_leaf_node();
+      //      std::shared_ptr < D > right_clt = make_leaf_node();
 
       int
         rows_left = 0;
@@ -541,8 +545,10 @@ xcnet < D >::make_or_node (dataset & X,
           left_w = (double) rows_left / (rows_left + rows_right);
           right_w = (double) rows_right / (rows_left + rows_right);
 
-          std::shared_ptr < D > left_clt (new D);
-          std::shared_ptr < D > right_clt (new D);
+          //          std::shared_ptr < D > left_clt (new D);
+          //          std::shared_ptr < D > right_clt (new D);
+          std::shared_ptr < D > left_clt = this->make_leaf_node();
+          std::shared_ptr < D > right_clt = this->make_leaf_node();
 
           std::shared_ptr < leaf_node < D > >left_tree_node (new leaf_node < D > (left_clt));
           std::shared_ptr < leaf_node < D > >right_tree_node (new leaf_node < D > (right_clt));
@@ -605,8 +611,7 @@ xcnet < D >::make_or_node (dataset & X,
 
 
 template < class D > void
-xcnet <
-D >::fit (dataset & X, paramsexp & input_parameters)
+xcnet <D >::fit (dataset & X, paramsexp & input_parameters)
 {
 
   unsigned int
@@ -615,7 +620,8 @@ D >::fit (dataset & X, paramsexp & input_parameters)
     min_features = input_parameters.min_features;
 
   // initially set the root of the network being a tree_node
-  std::shared_ptr < D > root_cltree (new D);
+  //  std::shared_ptr < D > root_cltree (new D);
+  std::shared_ptr < D > root_cltree  = this->make_leaf_node();
   this->_root = std::make_shared < leaf_node < D > >(root_cltree);
 
   for (unsigned int i = 0; i < X.shape[1]; i++)
@@ -705,8 +711,10 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
       if (n->_scope[i])
         {
 
-          std::shared_ptr < D > left_clt (new D);
-          std::shared_ptr < D > right_clt (new D);
+          //          std::shared_ptr < D > left_clt (new D);
+          //          std::shared_ptr < D > right_clt (new D);
+          std::shared_ptr < D > left_clt = this->make_leaf_node();
+          std::shared_ptr < D > right_clt = this->make_leaf_node();
 
           int
             rows_left = 0;
@@ -876,8 +884,7 @@ optioncnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < D
 }
 
 template < class D > void
-optioncnet <
-D >::fit (dataset & X, paramsexp & input_parameters)
+optioncnet <D >::fit (dataset & X, paramsexp & input_parameters)
 {
   unsigned int
     option_depth = input_parameters.option_length.size ();
@@ -891,7 +898,8 @@ D >::fit (dataset & X, paramsexp & input_parameters)
     min_features = input_parameters.min_features;
   std::map < int, double >
     node_training_ll;
-  std::shared_ptr < D > root_cltree (new D);
+  //  std::shared_ptr < D > root_cltree (new D);
+  std::shared_ptr < D > root_cltree = this->make_leaf_node();
   std::shared_ptr < leaf_node < D > >n;
 
   root_cltree->fit (X, input_parameters.alpha);
@@ -1028,8 +1036,10 @@ optionxcnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < 
           if (n->_scope[i])
             {
 
-              std::shared_ptr < D > left_clt (new D);
-              std::shared_ptr < D > right_clt (new D);
+              //              std::shared_ptr < D > left_clt (new D);
+              //              std::shared_ptr < D > right_clt (new D);
+              std::shared_ptr < D > left_clt = this->make_leaf_node();
+              std::shared_ptr < D > right_clt = this->make_leaf_node();
 
               int
                 rows_left = 0;
@@ -1193,8 +1203,7 @@ optionxcnet < D >::make_option_node (dataset & X, std::shared_ptr < leaf_node < 
 
 
 template < class D > void
-optionxcnet <
-D >::fit (dataset & X, paramsexp & input_parameters)
+optionxcnet <D >::fit (dataset & X, paramsexp & input_parameters)
 {
 
   unsigned int
@@ -1211,7 +1220,8 @@ D >::fit (dataset & X, paramsexp & input_parameters)
     std::cout << "Random CNET ... " << std::endl;
 
   // initially set the root of the network being a tree_node
-  std::shared_ptr < D > root_cltree (new D);
+  //  std::shared_ptr < D > root_cltree (new D);
+  std::shared_ptr < D > root_cltree = this->make_leaf_node();
   this->_root = std::make_shared < leaf_node < D > >(root_cltree);
 
   for (unsigned int i = 0; i < X.shape[1]; i++)
