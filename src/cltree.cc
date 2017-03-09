@@ -68,7 +68,7 @@ cltree::cltree ()
 
 void cltree::sample (std::vector<int>& _sample, std::vector < int >&scope)
 {
-  // forward sampling
+ // forward sampling
   std::vector< int > topological_order(_n_vars);
   topological_order[0]=0;
   std::set< int > visited, to_visit;

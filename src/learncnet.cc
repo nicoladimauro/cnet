@@ -216,7 +216,7 @@ main (int argc, char **argv)
                         {
                           M_cltree = std::make_shared < xcnet < cltree > >();
                           M_cltree->fit (train_data, pars);
-                          std::vector<int> ss = M_cltree->sample();
+                          std::vector<int> ss = M_cltree->sample(train_data.shape[1]);
                           std::cout << std::endl;
                           for (unsigned l=0; l<train_data.shape[1]; l++)
                             std::cout << ss[l] << " ";

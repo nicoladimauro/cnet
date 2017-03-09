@@ -50,7 +50,7 @@ class cnet
   cnet (unsigned);
   virtual void fit (dataset & X, paramsexp &);
   virtual std::vector < double >eval (dataset & X);
-  std::vector<int> sample();
+  std::vector<int> sample(int);
   int _n_or_nodes = 0;
   int _n_tree_nodes = 0;
   int _n_option_nodes = 0;
@@ -146,9 +146,9 @@ cnet <D >::eval (dataset & X)
 }
 
 template < class D > std::vector < int >
-cnet <D >::sample ()
+cnet <D >::sample (int scope_length)
 {
-  std::vector<int> _sample(_root->_scope_length, 0);
+  std::vector<int> _sample(scope_length, 0);
   _root->sample (_sample);
   return _sample;
 }
@@ -635,8 +635,6 @@ xcnet <D >::fit (dataset & X, paramsexp & input_parameters)
     std::static_pointer_cast < leaf_node < D > >(this->_root)->fit (X, input_parameters.alpha);
 
   std::shared_ptr < leaf_node < D > >n;
-
-
 
   while (!nodes_to_process.empty ())
     {

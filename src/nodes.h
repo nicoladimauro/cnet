@@ -132,7 +132,7 @@ template < class D > class or_node:public node
 
 template < class D >
 or_node < D >::or_node (std::shared_ptr < leaf_node < D > >&ln,
-                        std::shared_ptr < leaf_node < D > >&rn, double lw, double rw, int of):
+                        std::shared_ptr < leaf_node < D > >&rn, double lw, double rw, int of) :
 node (OR_NODE)
 {
   _left_child = ln;
