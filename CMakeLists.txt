@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(cnet)
 
-SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
+SET (CMAKE_CXX_COMPILER             "/usr/bin/g++")
 SET (CMAKE_CXX_FLAGS_DEBUG          "-g -Wall -ferror-limit=3")
 SET (CMAKE_CXX_FLAGS_RELEASE        "-O2 -DNDEBUG -fstrict-aliasing -ffast-math -march=native")
 
