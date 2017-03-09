@@ -27,6 +27,11 @@ bernoulli::bernoulli ()
   _fitted = false;
 }
 
+void
+bernoulli::sample (std::vector<int>& _sample, std::vector<int>& scope)
+{
+}
+
 std::vector < double >
 bernoulli::eval (dataset & X)
 {

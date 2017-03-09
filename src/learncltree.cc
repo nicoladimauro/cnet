@@ -27,11 +27,13 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdlib>
 #include <getopt.h>
 #include <chrono>
+#include <random>
 
 #include "cltree.h"
 #include "dataset.h"
 #include "utils.h"
 
+std::mt19937 random_generator;
 
 int
 main (int argc, char **argv)

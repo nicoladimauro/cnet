@@ -33,12 +33,11 @@ class bernoulli
   bool _fitted;
  public:
   bernoulli ();
+  void sample (std::vector<int>&, std::vector<int>&);
   std::vector < double >eval (dataset &);
-  std::vector < double >eval (dataset &, std::vector < int >&,
-                              std::vector < int >&);
+  std::vector < double >eval (dataset &, std::vector < int >&, std::vector < int >&);
   void fit (dataset &, double);
-  void fit (dataset &, int, std::vector < int >&, std::vector < int >&, int,
-            double);
+  void fit (dataset &, int, std::vector < int >&, std::vector < int >&, int, double);
   ~bernoulli ();
 };
 

@@ -26,9 +26,11 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 #include <memory>
 #include <cmath>
+#include <random>
 
 #include "cltree.h"
 #include "dataset.h"
+#include "globals.h"
 
 #define OR_NODE 0
 #define LEAF_NODE 1
@@ -59,6 +61,7 @@ class node
   node_type get_type () const;
   virtual std::vector < double >eval (dataset &) = 0;
   virtual std::vector < double >eval (dataset &, std::vector < int >&) = 0;
+  virtual void sample(std::vector<int>&) = 0;
 };
 
 template < class D > class leaf_node:public node
@@ -67,32 +70,40 @@ template < class D > class leaf_node:public node
  public:
   leaf_node (std::shared_ptr < D >);
   void fit (dataset &, double);
+  void sample(std::vector<int>&);
   std::vector < double >eval (dataset &);
   std::vector < double >eval (dataset &, std::vector < int >&);
 };
 
-template < class D > leaf_node < D >::leaf_node (std::shared_ptr < D > model):node (LEAF_NODE)
+template < class D >
+leaf_node < D >::leaf_node (std::shared_ptr < D > model):node (LEAF_NODE)
 {
   _model = model;
 }
 
 template < class D > std::vector < double >
-leaf_node <
-D >::eval (dataset & X)
+leaf_node <D >::eval (dataset & X)
 {
   return _model->eval (X);
 }
 
-template < class D > std::vector < double >
-leaf_node <
-D >::eval (dataset & X, std::vector < int >&row_idx)
+template < class D >
+void
+leaf_node <D >::sample (std::vector<int>& _sample)
+{
+  _model->sample (_sample, _scope);
+}
+
+template < class D >
+std::vector < double >
+leaf_node <D >::eval (dataset & X, std::vector < int >&row_idx)
 {
   return _model->eval (X, row_idx, _scope);
 }
 
-template < class D > void
-leaf_node <
-D >::fit (dataset & X, double alpha)
+template < class D >
+void
+leaf_node <D >::fit (dataset & X, double alpha)
 {
   _model->fit (X, _row_idx.size (), _row_idx, _scope, _scope_length, alpha);
 }
@@ -103,28 +114,20 @@ template < class D > class or_node:public node
  private:
   std::shared_ptr < node > _left_child;
   std::shared_ptr < node > _right_child;
-  double
-    _left_weight;
-  double
-    _right_weight;
-  unsigned int
-    _or_feature;
+  double _left_weight;
+  double _right_weight;
+  unsigned int _or_feature;
  public:
-  unsigned int
-    get_or_feature ();
-
-  void
-    set_left_child (const std::shared_ptr < node > &);
-  void
-    set_right_child (const std::shared_ptr < node >);
+  unsigned int get_or_feature ();
+  void set_left_child (const std::shared_ptr < node > &);
+  void set_right_child (const std::shared_ptr < node >);
   std::shared_ptr < node > get_left_child ();
   std::shared_ptr < node > get_right_child ();
   or_node (std::shared_ptr < leaf_node < D > >&, std::shared_ptr < leaf_node < D > >&, double, double, int);
 
-  std::vector < double >
-    eval (dataset &);
-  std::vector < double >
-    eval (dataset &, std::vector < int >&);
+  void sample (std::vector<int>&);
+  std::vector < double > eval (dataset &);
+  std::vector < double > eval (dataset &, std::vector < int >&);
 };
 
 template < class D >
@@ -140,15 +143,13 @@ node (OR_NODE)
 }
 
 template < class D > void
-or_node <
-D >::set_left_child (const std::shared_ptr < node > &lc)
+or_node <D >::set_left_child (const std::shared_ptr < node > &lc)
 {
   _left_child = lc;
 }
 
 template < class D > void
-or_node <
-D >::set_right_child (const std::shared_ptr < node > rc)
+or_node <D >::set_right_child (const std::shared_ptr < node > rc)
 {
   _right_child = rc;
 }
@@ -164,15 +165,27 @@ template < class D > std::shared_ptr < node > or_node < D >::get_right_child ()
 }
 
 template < class D > unsigned int
-or_node <
-D >::get_or_feature ()
+or_node <D >::get_or_feature ()
 {
   return _or_feature;
 }
 
+
+template < class D >
+void
+or_node<D>::sample (std::vector<int>& _sample)
+{
+  std::bernoulli_distribution b_distr (_right_weight);
+  if (b_distr(random_generator))
+    {
+      _sample[_or_feature]=1;
+      _right_child->sample(_sample);
+    }
+  _left_child->sample(_sample);
+}
+
 template < class D > std::vector < double >
-or_node <
-D >::eval (dataset & X, std::vector < int >&row_idx)
+or_node <D >::eval (dataset & X, std::vector < int >&row_idx)
 {
   std::vector < double >
     lls (row_idx.size (), 0.0);
@@ -219,8 +232,7 @@ D >::eval (dataset & X, std::vector < int >&row_idx)
 }
 
 template < class D > std::vector < double >
-or_node <
-D >::eval (dataset & X)
+or_node <D >::eval (dataset & X)
 {
   std::vector < int >
     rows;
@@ -240,25 +252,17 @@ template < class D > class option_node:public node
  public:
   option_node ();
   option_node (std::vector < std::shared_ptr < or_node < D > > >&, std::vector < double >&);
-  void
-    push_back_child (const std::shared_ptr < or_node < D > >);
-  void
-    push_back_weight (const double);
+  void push_back_child (const std::shared_ptr < or_node < D > >);
+  void push_back_weight (const double);
   std::shared_ptr < or_node < D > >get_child (int);
-  double
-    get_weight (int);
-  unsigned int
-    n_children ();
-  std::vector < double >
-    eval (dataset &);
-  std::vector < double >
-    eval (dataset &, std::vector < int >&);
+  double get_weight (int);
+  unsigned int n_children ();
+  void sample (std::vector<int>&);
+  std::vector < double > eval (dataset &);
+  std::vector < double > eval (dataset &, std::vector < int >&);
 };
 
-template < class D > option_node < D >::option_node ():node (OPTION_NODE)
-{
-
-}
+template < class D > option_node < D >::option_node ():node (OPTION_NODE) {}
 
 template < class D >
 option_node < D >::option_node (std::vector < std::shared_ptr < or_node < D > > >&or_nodes,
@@ -273,15 +277,13 @@ node (OPTION_NODE)
 }
 
 template < class D > void
-option_node <
-D >::push_back_child (const std::shared_ptr < or_node < D > >child)
+option_node <D >::push_back_child (const std::shared_ptr < or_node < D > >child)
 {
   _children.push_back (child);
 }
 
 template < class D > void
-option_node <
-D >::push_back_weight (const double weight)
+option_node <D >::push_back_weight (const double weight)
 {
   _weights.push_back (weight);
 }
@@ -299,15 +301,20 @@ D >::get_weight (int id)
 }
 
 template < class D > unsigned int
-option_node <
-D >::n_children ()
+option_node <D >::n_children ()
 {
   return _children.size ();
 }
 
+template < class D >
+void
+option_node <D >::sample (std::vector<int>& _sample)
+{
+}
+
+
 template < class D > std::vector < double >
-option_node <
-D >::eval (dataset & X)
+option_node <D >::eval (dataset & X)
 {
   std::vector < int >
     rows;
@@ -320,8 +327,7 @@ D >::eval (dataset & X)
 
 
 template < class D > std::vector < double >
-option_node <
-D >::eval (dataset & X, std::vector < int >&row_idx)
+option_node <D >::eval (dataset & X, std::vector < int >&row_idx)
 {
   std::vector < double >
     lls;

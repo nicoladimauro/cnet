@@ -50,6 +50,7 @@ class cnet
   cnet (unsigned);
   virtual void fit (dataset & X, paramsexp &);
   virtual std::vector < double >eval (dataset & X);
+  std::vector<int> sample();
   int _n_or_nodes = 0;
   int _n_tree_nodes = 0;
   int _n_option_nodes = 0;
@@ -142,6 +143,14 @@ template < class D > std::vector < double >
 cnet <D >::eval (dataset & X)
 {
   return _root->eval (X);
+}
+
+template < class D > std::vector < int >
+cnet <D >::sample ()
+{
+  std::vector<int> _sample(_root->_scope_length, 0);
+  _root->sample (_sample);
+  return _sample;
 }
 
 template < class D > bool cnet < D >::is_pdf ()

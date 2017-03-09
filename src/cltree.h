@@ -27,6 +27,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <set>
 
 #include "dataset.h"
 #include "globals.h"
@@ -46,6 +47,7 @@ class cltree
   void compute_log_probs (dataset & X, std::vector < int >&, std::vector < int >&, int, double);
  public:
   cltree ();
+  void sample (std::vector<int>&, std::vector < int >&);
   std::vector < double >eval (dataset &);
   std::vector < double >eval (dataset &, std::vector < int >&, std::vector < int >&);
   void fit (dataset &, double);

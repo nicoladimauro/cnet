@@ -66,6 +66,51 @@ cltree::cltree ()
   _fitted = false;
 }
 
+void cltree::sample (std::vector<int>& _sample, std::vector < int >&scope)
+{
+  // forward sampling
+  std::vector< int > topological_order(_n_vars);
+  topological_order[0]=0;
+  std::set< int > visited, to_visit;
+  visited.insert(0);
+  for (unsigned i=1; i<_n_vars; i++)
+    to_visit.insert(i);
+  unsigned i = 1;
+  while (!to_visit.empty())
+    {
+      for (auto it = to_visit.begin(); it!=to_visit.end(); ++it)
+        if (visited.find(_tree[*it])!=visited.end())
+          {
+            topological_order[i] = *it;
+            to_visit.erase(*it);
+            visited.insert(*it);
+            i++;
+            break;
+          }
+    }
+
+  std::vector < int >scope_assoc;
+  unsigned int scope_size = scope.size ();
+  for (i = 0; i < scope_size; ++i)
+    if (scope[i])
+      scope_assoc.push_back (i);
+
+  // sampling the root of the tree
+  std::bernoulli_distribution b_distr (_log_factors[0][1][0]);
+  if (b_distr(random_generator))
+    _sample[scope_assoc[0]]=1;
+
+  for (unsigned i=1; i<_n_vars; i++)
+    {
+      unsigned feature_to_sample = topological_order[i];
+      unsigned parent = _tree[feature_to_sample];
+      unsigned parent_sampled = _sample[scope_assoc[parent]];
+      std::bernoulli_distribution b_distr_s (_log_factors[feature_to_sample][1][parent_sampled]);
+      if (b_distr_s(random_generator))
+        _sample[scope_assoc[feature_to_sample]]=1;
+    }
+}
+
 std::vector < double >
 cltree::eval (dataset & X)
 {

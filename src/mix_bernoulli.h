@@ -36,12 +36,11 @@ class mix_bernoulli
 public:
   mix_bernoulli();
   mix_bernoulli (int);
+  void sample (std::vector<int>&, std::vector<int>&);
   std::vector < double >eval (dataset &);
-  std::vector < double >eval (dataset &, std::vector < int >&,
-                                std::vector < int >&);
+  std::vector < double >eval (dataset &, std::vector < int >&, std::vector < int >&);
   void fit (dataset &, double);
-  void fit (dataset &, int, std::vector < int >&, std::vector < int >&, int,
-            double);
+  void fit (dataset &, int, std::vector < int >&, std::vector < int >&, int, double);
    ~mix_bernoulli ();
 };
 

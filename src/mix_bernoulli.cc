@@ -36,6 +36,11 @@ mix_bernoulli::mix_bernoulli (int N) :
   _components.resize(_n_components);
 }
 
+void
+mix_bernoulli::sample (std::vector<int>& _sample, std::vector<int>& scope)
+{
+}
+
 std::vector < double >
 mix_bernoulli::eval (dataset & X)
 {
