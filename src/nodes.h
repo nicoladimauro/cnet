@@ -68,12 +68,18 @@ template < class D > class leaf_node:public node
 {
   std::shared_ptr < D > _model;
  public:
+  ~leaf_node();
   leaf_node (std::shared_ptr < D >);
   void fit (dataset &, double);
   void sample(std::vector<int>&);
   std::vector < double >eval (dataset &);
   std::vector < double >eval (dataset &, std::vector < int >&);
 };
+
+template < class D >
+leaf_node < D >::~leaf_node ()
+{
+}
 
 template < class D >
 leaf_node < D >::leaf_node (std::shared_ptr < D > model):node (LEAF_NODE)

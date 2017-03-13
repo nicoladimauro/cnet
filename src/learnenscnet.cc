@@ -63,6 +63,7 @@ log_outdir (std::string problem_name, std::string out_path)
 int
 main (int argc, char **argv)
 {
+
   params input_parameters;
 
   gengetopt_args_info args_info;
@@ -224,6 +225,7 @@ main (int argc, char **argv)
               auto t1 = std::chrono::high_resolution_clock::now ();
               C->fit (train_data, pars);
               auto t2 = std::chrono::high_resolution_clock::now ();
+              //              C->is_pdf(55);
 
               std::vector < double >max_train_ll;
               std::vector < double >max_valid_ll;
@@ -244,6 +246,7 @@ main (int argc, char **argv)
                   auto te1 = std::chrono::high_resolution_clock::now ();
                   std::vector < double >c_ll = C->eval (train_data, nc);
                   // setting the max for the log sum exp trick to the first component value
+
                   if (nc == 0)
                     max_train_ll = c_ll;
                   for (unsigned inst = 0; inst < train_data.shape[0]; inst++)
@@ -254,13 +257,15 @@ main (int argc, char **argv)
                     {
                       if (c_ll[inst] > max_train_ll[inst])
                         {
-                          global_train_lls[inst] = global_train_lls[inst] / exp(max_train_ll[inst]) * exp(c_ll[inst]);
+                          global_train_lls[inst] = global_train_lls[inst] * exp(max_train_ll[inst]) / exp(c_ll[inst]);
                           max_train_ll[inst] = c_ll[inst];
                         }
                       global_train_lls[inst] += exp (c_ll[inst] - max_train_ll[inst]);
                       train_local_ll += max_train_ll[inst] - log ((double) nc + 1) + log (global_train_lls[inst]);
                     }
                   train_local_ll /= train_data.shape[0];
+
+
                   auto te2 = std::chrono::high_resolution_clock::now ();
                   eval_time += (double) std::chrono::duration_cast < std::chrono::milliseconds >
                     (te2 - te1).count () / 1000;
@@ -268,9 +273,17 @@ main (int argc, char **argv)
                   c_ll = C->eval (valid_data, nc);
                   if (nc == 0)
                     max_valid_ll = c_ll;
+                  for (unsigned inst = 0; inst < valid_data.shape[0]; inst++)
+                    if (max_valid_ll[inst]<-100)
+                      max_valid_ll[inst] = -100;
                   double valid_local_ll = 0;
                   for (unsigned inst = 0; inst < valid_data.shape[0]; inst++)
                     {
+                      if (c_ll[inst] > max_valid_ll[inst])
+                        {
+                          global_valid_lls[inst] = global_valid_lls[inst] * exp(max_valid_ll[inst]) / exp(c_ll[inst]);
+                          max_valid_ll[inst] = c_ll[inst];
+                        }
                       global_valid_lls[inst] += exp (c_ll[inst] - max_valid_ll[inst]);
                       valid_local_ll += max_valid_ll[inst] - log ((double) nc + 1) + log (global_valid_lls[inst]);
                     }
@@ -279,9 +292,17 @@ main (int argc, char **argv)
                   c_ll = C->eval (test_data, nc);
                   if (nc == 0)
                     max_test_ll = c_ll;
+                  for (unsigned inst = 0; inst < test_data.shape[0]; inst++)
+                    if (max_test_ll[inst]<-100)
+                      max_test_ll[inst] = -100;
                   double test_local_ll = 0;
                   for (unsigned inst = 0; inst < test_data.shape[0]; inst++)
                     {
+                      if (c_ll[inst] > max_test_ll[inst])
+                        {
+                          global_test_lls[inst] = global_test_lls[inst] * exp(max_test_ll[inst]) / exp(c_ll[inst]);
+                          max_test_ll[inst] = c_ll[inst];
+                        }
                       global_test_lls[inst] += exp (c_ll[inst] - max_test_ll[inst]);
                       test_local_ll += max_test_ll[inst] - log ((double) nc + 1) + log (global_test_lls[inst]);
                     }
@@ -310,4 +331,5 @@ main (int argc, char **argv)
         }
     }
   output.close ();
+  return 0;
 }

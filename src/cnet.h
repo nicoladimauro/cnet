@@ -535,8 +535,7 @@ xcnet < D >::make_or_node (dataset & X,
               std::cout.flush ();
             }
 
-          std::vector < int >
-            children_scope = n->_scope;
+          std::vector < int > children_scope = n->_scope;
           children_scope[splitFeature] = 0;
 
           double
