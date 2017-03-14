@@ -249,15 +249,12 @@ main (int argc, char **argv)
 
                   if (nc == 0)
                     max_train_ll = c_ll;
-                  for (unsigned inst = 0; inst < train_data.shape[0]; inst++)
-                    if (max_train_ll[inst]<-100)
-                      max_train_ll[inst] = -100;
                   double train_local_ll = 0;
                   for (unsigned inst = 0; inst < train_data.shape[0]; inst++)
                     {
                       if (c_ll[inst] > max_train_ll[inst])
                         {
-                          global_train_lls[inst] = global_train_lls[inst] * exp(max_train_ll[inst]) / exp(c_ll[inst]);
+                          global_train_lls[inst] = global_train_lls[inst] * exp(max_train_ll[inst] - c_ll[inst]);
                           max_train_ll[inst] = c_ll[inst];
                         }
                       global_train_lls[inst] += exp (c_ll[inst] - max_train_ll[inst]);
@@ -273,15 +270,12 @@ main (int argc, char **argv)
                   c_ll = C->eval (valid_data, nc);
                   if (nc == 0)
                     max_valid_ll = c_ll;
-                  for (unsigned inst = 0; inst < valid_data.shape[0]; inst++)
-                    if (max_valid_ll[inst]<-100)
-                      max_valid_ll[inst] = -100;
                   double valid_local_ll = 0;
                   for (unsigned inst = 0; inst < valid_data.shape[0]; inst++)
                     {
                       if (c_ll[inst] > max_valid_ll[inst])
                         {
-                          global_valid_lls[inst] = global_valid_lls[inst] * exp(max_valid_ll[inst]) / exp(c_ll[inst]);
+                          global_valid_lls[inst] = global_valid_lls[inst] * exp(max_valid_ll[inst] - c_ll[inst]);
                           max_valid_ll[inst] = c_ll[inst];
                         }
                       global_valid_lls[inst] += exp (c_ll[inst] - max_valid_ll[inst]);
@@ -292,15 +286,12 @@ main (int argc, char **argv)
                   c_ll = C->eval (test_data, nc);
                   if (nc == 0)
                     max_test_ll = c_ll;
-                  for (unsigned inst = 0; inst < test_data.shape[0]; inst++)
-                    if (max_test_ll[inst]<-100)
-                      max_test_ll[inst] = -100;
                   double test_local_ll = 0;
                   for (unsigned inst = 0; inst < test_data.shape[0]; inst++)
                     {
                       if (c_ll[inst] > max_test_ll[inst])
                         {
-                          global_test_lls[inst] = global_test_lls[inst] * exp(max_test_ll[inst]) / exp(c_ll[inst]);
+                          global_test_lls[inst] = global_test_lls[inst] * exp(max_test_ll[inst] - c_ll[inst]);
                           max_test_ll[inst] = c_ll[inst];
                         }
                       global_test_lls[inst] += exp (c_ll[inst] - max_test_ll[inst]);
