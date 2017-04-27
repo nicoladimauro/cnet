@@ -68,6 +68,7 @@ cltree::cltree ()
 
 void cltree::sample (std::vector<int>& _sample, std::vector < int >&scope)
 {
+
  // forward sampling
   std::vector< int > topological_order(_n_vars);
   topological_order[0]=0;
@@ -96,7 +97,8 @@ void cltree::sample (std::vector<int>& _sample, std::vector < int >&scope)
       scope_assoc.push_back (i);
 
   // sampling the root of the tree
-  std::bernoulli_distribution b_distr (_log_factors[0][1][0]);
+
+  std::bernoulli_distribution b_distr (exp(_log_factors[0][1][0]));
   if (b_distr(random_generator))
     _sample[scope_assoc[0]]=1;
 
@@ -105,7 +107,7 @@ void cltree::sample (std::vector<int>& _sample, std::vector < int >&scope)
       unsigned feature_to_sample = topological_order[i];
       unsigned parent = _tree[feature_to_sample];
       unsigned parent_sampled = _sample[scope_assoc[parent]];
-      std::bernoulli_distribution b_distr_s (_log_factors[feature_to_sample][1][parent_sampled]);
+      std::bernoulli_distribution b_distr_s (exp(_log_factors[feature_to_sample][1][parent_sampled]));
       if (b_distr_s(random_generator))
         _sample[scope_assoc[feature_to_sample]]=1;
     }

@@ -187,7 +187,8 @@ or_node<D>::sample (std::vector<int>& _sample)
       _sample[_or_feature]=1;
       _right_child->sample(_sample);
     }
-  _left_child->sample(_sample);
+  else
+    _left_child->sample(_sample);
 }
 
 template < class D > std::vector < double >
