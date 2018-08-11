@@ -8,13 +8,13 @@ of an OR tree. They exploit context-specific independencies by embedding Pearlâ€
 ```
 git clone --recursive https://github.com/nicoladimauro/cnet.git
 cd cnet
-cmake . -DCMAKE_BUILD_TYPE=Debug
+cmake . -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
 ## Usage
 
-### Learn Cutset Netowrk
+### Learn Cutset Network
 
 ```
 Usage: cnet [OPTIONS]...
@@ -45,7 +45,7 @@ Usage: cnet [OPTIONS]...
 ```
 ./learncnet --problem=accidents --min-inst=300,500,1000,2000 --min-feat=4 --output-dir=exp/cnet --model=cnet --alpha=0.1,0.2,0.5,1.0,2.0 
 ```
-### Learn Ensembles of Cutset Netowrk
+### Learn Ensembles of Cutset Network
 
 ```
 Usage: cnet [OPTIONS]...
