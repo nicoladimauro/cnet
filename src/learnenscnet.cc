@@ -26,6 +26,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdlib>
 #include <chrono>
 #include <map>
+#include <limits>
+#include <cstdio>
 
 #include "cltree.h"
 #include "bernoulli.h"
@@ -145,6 +147,8 @@ main (int argc, char **argv)
     ";; components, min_instances, min_features, alpha, learn_time, eval_time," <<
     " train_ll, valid_ll, test_ll" << std::endl;
 
+  double best_valid_ll = -std::numeric_limits<double>::infinity();
+  
   for (unsigned int mi = 0; mi < input_parameters.min_instances.size (); mi++)
     {
       for (unsigned int mf = 0; mf < input_parameters.min_features.size (); mf++)
@@ -315,6 +319,16 @@ main (int argc, char **argv)
                       std::cout << ", train ll: " << train_local_ll;
                       std::cout << ", valid ll: " << valid_local_ll;
                       std::cout << ", test ll: " << test_local_ll;
+
+		      if (valid_local_ll > best_valid_ll)
+			{
+			  best_valid_ll = valid_local_ll;
+			  std::ofstream output_ll;
+			  output_ll.open (output_dir_name + "best_lls", std::ofstream::out);
+			  for (int s=0; s < global_test_lls.size(); s++)
+			    output_ll << max_test_ll[s] - log ((double) input_parameters.max_components) + log (global_test_lls[s]) << std::endl;
+			  output_ll.close();
+			}
                     }
                 }
               std::cout << std::endl;

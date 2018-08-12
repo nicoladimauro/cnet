@@ -29,6 +29,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <map>
 #include <ctime>
 #include <cstdlib>
+#include <limits>
+#include <cstdio>
 
 #include "cltree.h"
 #include "bernoulli.h"
@@ -147,6 +149,8 @@ main (int argc, char **argv)
     "max_depth_m, max_depth_s, mean_depth_m, mean_depth_s, train_ll_m, train_ll_s, valid_ll_m, valid_ll_s, test_ll_m, test_ll_s"
          << std::endl;
 
+  double best_valid_ll = -std::numeric_limits<double>::infinity();
+
   for (unsigned int mi = 0; mi < input_parameters.min_instances.size (); mi++)
     {
       for (unsigned int mf = 0; mf < input_parameters.min_features.size (); mf++)
@@ -190,6 +194,7 @@ main (int argc, char **argv)
               std::vector < double >valid_ll_accum;
               std::vector < double >test_ll_accum;
 
+	      
               for (int iter = 0; iter < max_iterations; iter++)
                 {
 
@@ -339,6 +344,12 @@ main (int argc, char **argv)
                   double valid_ll = mean (valid_lls);
                   double test_ll = mean (test_lls);
 
+		  std::ofstream output_ll;
+		  output_ll.open (output_dir_name + "lls_iter" + std::to_string(iter), std::ofstream::out);
+		  for (int s=0; s < test_lls.size(); s++)
+		    output_ll << test_lls[s] << std::endl;
+		  output_ll.close();
+		  
                   train_ll_accum.push_back (train_ll);
                   valid_ll_accum.push_back (valid_ll);
                   test_ll_accum.push_back (test_ll);
@@ -374,8 +385,29 @@ main (int argc, char **argv)
               double meanTestLL = mean (test_ll_accum);
               output << "," << meanTestLL << "," << stdev (test_ll_accum, meanTestLL);
               output << std::endl;
+
+
+	      if (meanValidLL > best_valid_ll)
+		{
+		  best_valid_ll = meanValidLL;
+		  for (int iter = 0; iter < max_iterations; iter++)
+		    {
+		      std::string old_name = output_dir_name + "lls_iter" + std::to_string(iter);
+		      std::string new_name = output_dir_name + "best_lls_iter" + std::to_string(iter);
+		      std::rename(old_name.c_str(), new_name.c_str());
+		    }
+		}
+	      else
+		{
+		  for (int iter = 0; iter < max_iterations; iter++)
+		    {
+		      std::string filename = output_dir_name + "lls_iter" + std::to_string(iter);
+		      std::remove(filename.c_str());
+		    }
+		}
             }
         }
     }
+
   output.close ();
 }
